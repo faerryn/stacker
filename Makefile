@@ -1,5 +1,5 @@
 CXXFLAGS ?= -g
-CXXFLAGS += -std=c++17 -Werror -Wall -Wextra -Wpedantic
+CXXFLAGS += -std=c++20 -Werror -Wall -Wextra -Wpedantic
 objects = stacker.o
 
 stacker: $(objects)

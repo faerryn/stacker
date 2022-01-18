@@ -1,4 +1,3 @@
-#include <cctype>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -18,6 +17,8 @@ struct Lexeme {
     SUB,
     MUL,
     DIV,
+    REM,
+    MOD,
 
     GT,
     LT,
@@ -29,8 +30,10 @@ struct Lexeme {
     EMIT,
 
     DUP,
+    DROP,
     SWITCH,
     OVER,
+    ROT,
 
     COL,
     WORD,
@@ -42,13 +45,13 @@ struct Lexeme {
   std::variant<std::monostate, std::int64_t, std::string> data;
 };
 
-std::optional<int64_t> parseInt(const std::string &ident) {
+std::optional<std::int64_t> parseInt(const std::string &ident) {
   if (ident.empty()) {
     return {};
   }
-  int64_t result = 0;
+  std::int64_t result = 0;
 
-  int64_t sign = +1;
+  std::int64_t sign = +1;
   size_t i = 0;
   if (ident[i] == '-') {
     sign = -1;
@@ -73,27 +76,34 @@ std::optional<int64_t> parseInt(const std::string &ident) {
 
 std::optional<Lexeme> parseWord(const std::string &word) {
   const std::map<std::string, Lexeme::Type> operatorDict{
-      {"+", Lexeme::Type::ADD},     {"-", Lexeme::Type::SUB},
-      {"*", Lexeme::Type::MUL},     {"/", Lexeme::Type::DIV},
+      {"+", Lexeme::Type::ADD},         {"-", Lexeme::Type::SUB},
+      {"*", Lexeme::Type::MUL},         {"/", Lexeme::Type::DIV},
+      {"rem", Lexeme::Type::REM},       {"REM", Lexeme::Type::REM},
+      {"mod", Lexeme::Type::MOD},       {"MOD", Lexeme::Type::MOD},
 
-      {">", Lexeme::Type::GT},      {"<", Lexeme::Type::LT},
-      {"=", Lexeme::Type::EQ},      {"<>", Lexeme::Type::NEQ},
+      {">", Lexeme::Type::GT},          {"<", Lexeme::Type::LT},
+      {"=", Lexeme::Type::EQ},          {"<>", Lexeme::Type::NEQ},
 
-      {".", Lexeme::Type::DOT},     {"emit", Lexeme::Type::EMIT},
+      {"emit", Lexeme::Type::EMIT},     {"EMIT", Lexeme::Type::EMIT},
+      {".", Lexeme::Type::DOT},
 
-      {"dup", Lexeme::Type::DUP},   {"switch", Lexeme::Type::SWITCH},
-      {"over", Lexeme::Type::OVER},
+      {"dup", Lexeme::Type::DUP},       {"DUP", Lexeme::Type::DUP},
+      {"drop", Lexeme::Type::DROP},     {"DROP", Lexeme::Type::DROP},
+      {"switch", Lexeme::Type::SWITCH}, {"SWITCH", Lexeme::Type::SWITCH},
+      {"over", Lexeme::Type::OVER},     {"OVER", Lexeme::Type::OVER},
+      {"rot", Lexeme::Type::ROT},       {"ROT", Lexeme::Type::ROT},
 
-      {":", Lexeme::Type::COL},     {";", Lexeme::Type::SEMICOL},
+      {":", Lexeme::Type::COL},         {";", Lexeme::Type::SEMICOL},
 
-      {"if", Lexeme::Type::IF},     {"then", Lexeme::Type::THEN},
+      {"if", Lexeme::Type::IF},         {"IF", Lexeme::Type::IF},
+      {"then", Lexeme::Type::THEN},     {"THEN", Lexeme::Type::THEN},
   };
   if (word.empty()) {
     return {};
   } else if (auto find = operatorDict.find(word); find != operatorDict.end()) {
     return Lexeme{find->second, {}};
   } else {
-    std::optional<int64_t> num;
+    std::optional<std::int64_t> num;
     if ((num = parseInt(word))) {
       return Lexeme{Lexeme::Type::NUM, *num};
     } else {
@@ -102,7 +112,7 @@ std::optional<Lexeme> parseWord(const std::string &word) {
   }
 }
 
-std::optional<Lexeme> lexWord(FILE *fin, std::string &word) {
+std::optional<Lexeme> lexWord(std::FILE *const fin, std::string &word) {
   const int ch = fgetc(fin);
   if (ch == EOF || std::isspace(ch)) {
     return parseWord(word);
@@ -112,7 +122,7 @@ std::optional<Lexeme> lexWord(FILE *fin, std::string &word) {
   }
 }
 
-std::optional<Lexeme> lex(FILE *fin) {
+std::optional<Lexeme> lex(std::FILE *fin) {
   const int ch = fgetc(fin);
   if (ch == EOF) {
     return {};
@@ -126,20 +136,20 @@ std::optional<Lexeme> lex(FILE *fin) {
 }
 
 struct Engine {
-  std::stack<int64_t> dataStack;
+  std::stack<std::int64_t> dataStack;
   std::deque<Lexeme> instructionQueue;
   std::map<std::string, std::vector<Lexeme>> wordDict;
-  void push(int64_t number) { dataStack.push(number); }
-  int64_t pop() {
+  void push(std::int64_t number) { dataStack.push(number); }
+  std::int64_t pop() {
     if (dataStack.empty()) {
       fprintf(stderr, "empty stack\n");
       exit(EXIT_FAILURE);
     }
-    int64_t result = dataStack.top();
+    const std::int64_t result = dataStack.top();
     dataStack.pop();
     return result;
   }
-  std::optional<Lexeme> dequeueFrom(FILE *fin) {
+  std::optional<Lexeme> dequeueFrom(std::FILE *const fin) {
     if (instructionQueue.empty()) {
       return lex(fin);
     } else {
@@ -148,9 +158,9 @@ struct Engine {
       return result;
     }
   }
-  void evalWordDefBody(FILE *fin, const std::string &word,
+  void evalWordDefBody(std::FILE *const fin, const std::string &word,
                        std::vector<Lexeme> &def) {
-    std::optional<Lexeme> lexeme = dequeueFrom(fin);
+    const std::optional<Lexeme> lexeme = dequeueFrom(fin);
     if (!lexeme) {
       fprintf(stderr, "unexpected EOF\n");
       exit(EXIT_FAILURE);
@@ -169,15 +179,15 @@ struct Engine {
       break;
     }
   }
-  void evalWordDef(FILE *fin) {
-    std::optional<Lexeme> lexeme = dequeueFrom(fin);
+  void evalWordDef(std::FILE *const fin) {
+    const std::optional<Lexeme> lexeme = dequeueFrom(fin);
     if (!lexeme) {
       fprintf(stderr, "unexpected EOF\n");
       exit(EXIT_FAILURE);
     }
     switch (lexeme->type) {
     case Lexeme::Type::WORD: {
-      std::string word = std::get<std::string>(lexeme->data);
+      const std::string &word = std::get<std::string>(lexeme->data);
       std::vector<Lexeme> def;
       evalWordDefBody(fin, word, def);
     } break;
@@ -187,8 +197,8 @@ struct Engine {
       break;
     }
   }
-  void evalIfSkip(FILE *fin) {
-    std::optional<Lexeme> lexeme = dequeueFrom(fin);
+  void evalIfSkip(std::FILE *const fin) {
+    const std::optional<Lexeme> lexeme = dequeueFrom(fin);
     if (!lexeme) {
       fprintf(stderr, "unexpected EOF\n");
       exit(EXIT_FAILURE);
@@ -201,8 +211,8 @@ struct Engine {
       break;
     }
   }
-  bool eval(FILE *fin) {
-    std::optional<Lexeme> lexeme = dequeueFrom(fin);
+  bool eval(std::FILE *const fin) {
+    const std::optional<Lexeme> lexeme = dequeueFrom(fin);
     if (!lexeme) {
       return false;
     }
@@ -222,17 +232,26 @@ struct Engine {
     case Lexeme::Type::DIV:
       push(pop() / pop());
       break;
+    case Lexeme::Type::REM:
+      push(pop() % pop());
+      break;
+    case Lexeme::Type::MOD: {
+      const std::int64_t dividend = pop();
+      const std::int64_t divisor = pop();
+      const std::int64_t modulus = (dividend % divisor + divisor) % divisor;
+      push(modulus);
+    } break;
     case Lexeme::Type::GT:
-      push(int64_t(pop() > pop()));
+      push(std::int64_t(pop() > pop()));
       break;
     case Lexeme::Type::LT:
-      push(int64_t(pop() < pop()));
+      push(std::int64_t(pop() < pop()));
       break;
     case Lexeme::Type::EQ:
-      push(int64_t(pop() == pop()));
+      push(std::int64_t(pop() == pop()));
       break;
     case Lexeme::Type::NEQ:
-      push(int64_t(pop() != pop()));
+      push(std::int64_t(pop() != pop()));
       break;
     case Lexeme::Type::DOT:
       printf("%ld ", pop());
@@ -241,21 +260,32 @@ struct Engine {
       printf("%c", char(pop()));
       break;
     case Lexeme::Type::DUP: {
-      const int64_t top = pop();
+      const std::int64_t top = pop();
       push(top);
       push(top);
     } break;
+    case Lexeme::Type::DROP:
+      pop();
+      break;
     case Lexeme::Type::SWITCH: {
-      const int64_t b = pop();
-      const int64_t a = pop();
+      const std::int64_t b = pop();
+      const std::int64_t a = pop();
       push(b);
       push(a);
     } break;
     case Lexeme::Type::OVER: {
-      const int64_t b = pop();
-      const int64_t a = pop();
+      const std::int64_t b = pop();
+      const std::int64_t a = pop();
       push(a);
       push(b);
+      push(a);
+    } break;
+    case Lexeme::Type::ROT: {
+      const std::int64_t c = pop();
+      const std::int64_t b = pop();
+      const std::int64_t a = pop();
+      push(b);
+      push(c);
       push(a);
     } break;
     case Lexeme::Type::WORD: {
@@ -286,7 +316,7 @@ struct Engine {
     }
     return true;
   }
-  void evalLoop(FILE *fin) {
+  void evalLoop(std::FILE *const fin) {
     bool run = true;
     while (run) {
       run = eval(fin);
@@ -301,7 +331,7 @@ int main(int argc, char **argv) {
     if (std::string(argv[i]) == "-") {
       stdinEnabled = true;
     }
-    FILE *const file = fopen(argv[i], "r");
+    std::FILE *const file = fopen(argv[i], "r");
     if (!file) {
       perror(argv[i]);
       exit(EXIT_FAILURE);
