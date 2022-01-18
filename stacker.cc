@@ -204,6 +204,10 @@ struct Engine {
       exit(EXIT_FAILURE);
     }
     switch (lexeme->type) {
+    case Lexeme::Type::IF:
+      evalIfSkip(fin);
+      evalIfSkip(fin);
+      break;
     case Lexeme::Type::THEN:
       break;
     default:
