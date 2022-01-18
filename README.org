@@ -1,0 +1,5 @@
+#+TITLE: STACKER
+#+STARTUP: indent
+
+* STACKER
+A buggy, non-conformal subset of [[https://www.forth.com/][FORTH,]] is a stack-based language.
