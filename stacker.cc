@@ -261,7 +261,7 @@ struct Engine {
         instructionQueue.insert(instructionQueue.begin(), def.begin(),
                                 def.end());
       } else {
-        fprintf(stderr, "%s\n", word.c_str());
+        fprintf(stderr, "unknown word\n");
         exit(EXIT_FAILURE);
       }
     } break;
