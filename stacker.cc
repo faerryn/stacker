@@ -326,12 +326,17 @@ struct Engine {
 
 int main(int argc, char **argv) {
   Engine engine;
-  bool stdinEnabled = (argc == 1);
+  bool evalStdin = (argc == 1);
   for (int i = 1; i < argc; ++i) {
     if (std::string(argv[i]) == "-") {
-      stdinEnabled = true;
+      evalStdin = true;
+      continue;
     }
     std::FILE *const file = fopen(argv[i], "r");
+    if (file == stdin) {
+      evalStdin = true;
+      continue;
+    }
     if (!file) {
       perror(argv[i]);
       exit(EXIT_FAILURE);
@@ -339,7 +344,7 @@ int main(int argc, char **argv) {
     engine.evalLoop(file);
     fclose(file);
   }
-  if (stdinEnabled) {
+  if (evalStdin) {
     engine.evalLoop(stdin);
   }
   return EXIT_SUCCESS;
