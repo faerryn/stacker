@@ -1,0 +1,3 @@
+: fib dup 1 < if dup 1 switch - fib switch 2 switch - fib + then ;
+
+10 fib .
