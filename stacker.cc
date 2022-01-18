@@ -254,22 +254,22 @@ struct Engine {
       push(b);
       push(a);
     } break;
-    case Lexeme::Type::WORD:
-      if (auto find = wordDict.find(std::get<std::string>(lexeme->data));
-          find != wordDict.end()) {
+    case Lexeme::Type::WORD: {
+      const std::string &word = std::get<std::string>(lexeme->data);
+      if (auto find = wordDict.find(word); find != wordDict.end()) {
         const auto &def = find->second;
         instructionQueue.insert(instructionQueue.begin(), def.begin(),
                                 def.end());
       } else {
-        fprintf(stderr, "unknown word\n");
+        fprintf(stderr, "%s\n", word.c_str());
         exit(EXIT_FAILURE);
       }
-      break;
+    } break;
     case Lexeme::Type::COL:
       evalWordDef(fin);
       break;
     case Lexeme::Type::SEMICOL:
-      fprintf(stderr, "unexpected semicolumn\n");
+      fprintf(stderr, "unexpected semicolon\n");
       exit(EXIT_FAILURE);
       break;
     case Lexeme::Type::IF:
