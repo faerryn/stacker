@@ -282,19 +282,31 @@ struct Engine {
     }
     return true;
   }
+  void evalLoop(FILE *fin) {
+    bool run = true;
+    while (run) {
+      run = eval(fin);
+    }
+  }
 };
 
 int main(int argc, char **argv) {
   Engine engine;
+  bool stdinEnabled = (argc == 1);
   for (int i = 1; i < argc; ++i) {
+    if (std::string(argv[i]) == "-") {
+      stdinEnabled = true;
+    }
     FILE *const file = fopen(argv[i], "r");
     if (!file) {
       perror(argv[i]);
       exit(EXIT_FAILURE);
     }
-    while (engine.eval(file)) {
-    }
+    engine.evalLoop(file);
     fclose(file);
+  }
+  if (stdinEnabled) {
+    engine.evalLoop(stdin);
   }
   return EXIT_SUCCESS;
 }
