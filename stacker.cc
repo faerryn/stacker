@@ -26,6 +26,7 @@ struct Lexeme {
     NEQ,
 
     DOT,
+    EMIT,
 
     DUP,
     SWITCH,
@@ -78,7 +79,7 @@ std::optional<Lexeme> parseWord(const std::string &word) {
       {">", Lexeme::Type::GT},      {"<", Lexeme::Type::LT},
       {"=", Lexeme::Type::EQ},      {"<>", Lexeme::Type::NEQ},
 
-      {".", Lexeme::Type::DOT},
+      {".", Lexeme::Type::DOT},     {"emit", Lexeme::Type::EMIT},
 
       {"dup", Lexeme::Type::DUP},   {"switch", Lexeme::Type::SWITCH},
       {"over", Lexeme::Type::OVER},
@@ -234,7 +235,10 @@ struct Engine {
       push(int64_t(pop() != pop()));
       break;
     case Lexeme::Type::DOT:
-      printf("%ld\n", pop());
+      printf("%ld ", pop());
+      break;
+    case Lexeme::Type::EMIT:
+      printf("%c", char(pop()));
       break;
     case Lexeme::Type::DUP: {
       const int64_t top = pop();
