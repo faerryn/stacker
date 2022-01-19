@@ -2,9 +2,8 @@
 #define PARSER_HH
 
 #include <cstdint>
-#include <cstdio>
-#include <cstdlib>
 #include <optional>
+#include <string>
 #include <variant>
 #include <vector>
 
@@ -22,12 +21,13 @@ private:
     size_t index;
   };
   std::variant<std::monostate, FILE *, Collection, Lexeme> data;
+
 public:
   LexemeSource() : type(Type::NONE), data({}) {}
   LexemeSource(FILE *const fin) : type(Type::FILE), data(fin) {}
   template <typename Iterator>
   LexemeSource(Iterator begin, Iterator end)
-    : type(Type::COLLECTION), data(Collection{{begin, end}, 0}) {}
+      : type(Type::COLLECTION), data(Collection{{begin, end}, 0}) {}
 
   std::optional<Lexeme> get();
 };
@@ -69,7 +69,7 @@ struct Expression {
   };
   std::variant<std::monostate, int64_t, std::string, Def,
                std::vector<Expression>>
-  data;
+      data;
 };
 
 std::optional<Expression> parse(LexemeSource &source);

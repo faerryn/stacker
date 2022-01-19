@@ -1,6 +1,7 @@
 #ifndef LEXER_HH
 #define LEXER_HH
 
+#include <cstdint>
 #include <optional>
 #include <string>
 #include <variant>

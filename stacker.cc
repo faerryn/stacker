@@ -1,22 +1,16 @@
-#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
-#include <map>
+#include <cstring>
 #include <optional>
-#include <stack>
-#include <string>
-#include <variant>
-#include <vector>
 
-#include "lexer.hh"
-#include "parser.hh"
 #include "engine.hh"
+#include "parser.hh"
 
 int main(int argc, char **argv) {
   Engine engine;
   bool evalStdin = (argc == 1);
   for (int i = 1; i < argc; ++i) {
-    if (std::string(argv[i]) == "-") {
+    if (std::strcmp(argv[i], "-") == 0) {
       evalStdin = true;
       continue;
     }

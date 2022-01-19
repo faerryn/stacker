@@ -1,8 +1,10 @@
 #ifndef ENGINE_HH
 #define ENGINE_HH
 
+#include <cstdint>
 #include <map>
 #include <stack>
+#include <string>
 
 #include "parser.hh"
 
