@@ -1,3 +1,6 @@
-/build/
+/*.o
+/*.d
+/stacker
+
 /.cache/
 /compile_commands.json
