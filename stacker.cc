@@ -1,7 +1,6 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
-#include <deque>
 #include <map>
 #include <optional>
 #include <stack>
@@ -12,6 +11,7 @@
 struct Lexeme {
   enum class Type {
     NUM,
+    WORD,
 
     ADD,
     SUB,
@@ -36,11 +36,13 @@ struct Lexeme {
     ROT,
 
     COL,
-    WORD,
     SEMICOL,
 
     IF,
     THEN,
+
+    BEGIN,
+    UNTIL,
   } type;
   std::variant<std::monostate, std::int64_t, std::string> data;
 };
@@ -74,7 +76,7 @@ std::optional<std::int64_t> parseInt(const std::string &ident) {
   return sign * result;
 }
 
-std::optional<Lexeme> parseWord(const std::string &word) {
+std::optional<Lexeme> lexWord(const std::string &word) {
   const std::map<std::string, Lexeme::Type> operatorDict{
       {"+", Lexeme::Type::ADD},         {"-", Lexeme::Type::SUB},
       {"*", Lexeme::Type::MUL},         {"/", Lexeme::Type::DIV},
@@ -97,6 +99,9 @@ std::optional<Lexeme> parseWord(const std::string &word) {
 
       {"if", Lexeme::Type::IF},         {"IF", Lexeme::Type::IF},
       {"then", Lexeme::Type::THEN},     {"THEN", Lexeme::Type::THEN},
+
+      {"begin", Lexeme::Type::BEGIN},   {"BEGIN", Lexeme::Type::BEGIN},
+      {"until", Lexeme::Type::UNTIL},   {"UNTIL", Lexeme::Type::UNTIL},
   };
   if (word.empty()) {
     return {};
@@ -115,7 +120,7 @@ std::optional<Lexeme> parseWord(const std::string &word) {
 std::optional<Lexeme> lexWord(std::FILE *const fin, std::string &word) {
   const int ch = fgetc(fin);
   if (ch == EOF || std::isspace(ch)) {
-    return parseWord(word);
+    return lexWord(word);
   } else {
     word.push_back(ch);
     return lexWord(fin, word);
@@ -135,10 +140,272 @@ std::optional<Lexeme> lex(std::FILE *fin) {
   }
 }
 
+struct LexemeSource {
+  enum class Type {
+    NONE,
+    FILE,
+    COLLECTION,
+  } type;
+  struct Collection {
+    std::vector<Lexeme> lexemes;
+    size_t index;
+  };
+  std::variant<std::monostate, FILE *, Collection, Lexeme> data;
+
+  LexemeSource() : type(Type::NONE), data({}) {}
+  LexemeSource(FILE *const fin) : type(Type::FILE), data(fin) {}
+  template <typename Iterator>
+  LexemeSource(Iterator begin, Iterator end)
+      : type(Type::COLLECTION), data(Collection{{begin, end}, 0}) {}
+
+  std::optional<Lexeme> get() {
+    switch (type) {
+    case Type::NONE:
+      return {};
+      break;
+    case Type::FILE:
+      return lex(std::get<FILE *>(data));
+      break;
+    case Type::COLLECTION: {
+      Collection &collection = std::get<Collection>(data);
+      if (collection.index < collection.lexemes.size()) {
+        const size_t lastIndex = collection.index;
+        ++collection.index;
+        return collection.lexemes[lastIndex];
+      } else {
+        return {};
+      }
+    } break;
+    }
+
+    fprintf(stderr, "unexpected\n");
+    exit(EXIT_FAILURE);
+  }
+};
+
+struct Expression {
+  enum class Type {
+    NUM,
+    WORD,
+
+    ADD,
+    SUB,
+    MUL,
+    DIV,
+    REM,
+    MOD,
+
+    GT,
+    LT,
+    EQ,
+
+    NEQ,
+
+    DOT,
+    EMIT,
+
+    DUP,
+    DROP,
+    SWITCH,
+    OVER,
+    ROT,
+
+    DEF,
+    IF,
+    BEGIN,
+  } type;
+  struct Def {
+    std::string word;
+    std::vector<Expression> body;
+  };
+  std::variant<std::monostate, int64_t, std::string, Def,
+               std::vector<Expression>>
+      data;
+};
+
+std::optional<Expression> parse(LexemeSource &source);
+std::optional<Expression> parseDefWord(LexemeSource &source);
+std::optional<Expression> parseDefBody(LexemeSource &source,
+                                       const std::string &word,
+                                       std::vector<Lexeme> &body);
+std::optional<Expression> parseIf(LexemeSource &source,
+                                  std::vector<Lexeme> &body);
+std::vector<Expression> parseAll(LexemeSource &source);
+
+std::vector<Expression> parseAll(LexemeSource &source) {
+  std::vector<Expression> bodyExprs;
+  std::optional<Expression> expr;
+  while ((expr = parse(source))) {
+    bodyExprs.push_back(*expr);
+  }
+  return bodyExprs;
+}
+
+std::optional<Expression> parseIf(LexemeSource &source,
+                                  std::vector<Lexeme> &body) {
+  std::optional<Lexeme> lexeme = source.get();
+  if (!lexeme) {
+    fprintf(stderr, "unexpected EOF\n");
+    exit(EXIT_FAILURE);
+  }
+
+  switch (lexeme->type) {
+  case Lexeme::Type::THEN: {
+    LexemeSource bodySource{body.begin(), body.end()};
+    return Expression{Expression::Type::IF, parseAll(bodySource)};
+  } break;
+  default: {
+    body.push_back(*lexeme);
+    return parseIf(source, body);
+  } break;
+  }
+
+  fprintf(stderr, "unexpected\n");
+  exit(EXIT_FAILURE);
+}
+
+std::optional<Expression> parseDefBody(LexemeSource &source,
+                                       const std::string &word,
+                                       std::vector<Lexeme> &body) {
+  std::optional<Lexeme> lexeme = source.get();
+  if (!lexeme) {
+    fprintf(stderr, "unexpected EOF\n");
+    exit(EXIT_FAILURE);
+  }
+
+  switch (lexeme->type) {
+  case Lexeme::Type::SEMICOL: {
+    LexemeSource bodySource{body.begin(), body.end()};
+    return Expression{Expression::Type::DEF,
+                      Expression::Def{word, parseAll(bodySource)}};
+  } break;
+  default: {
+    body.push_back(*lexeme);
+    return parseDefBody(source, word, body);
+  } break;
+  }
+
+  fprintf(stderr, "unexpected\n");
+  exit(EXIT_FAILURE);
+}
+
+std::optional<Expression> parseDefWord(LexemeSource &source) {
+  std::optional<Lexeme> lexeme = source.get();
+  if (!lexeme) {
+    fprintf(stderr, "unexpected EOF\n");
+    exit(EXIT_FAILURE);
+  }
+
+  switch (lexeme->type) {
+  case Lexeme::Type::WORD: {
+    const std::string &word = std::get<std::string>(lexeme->data);
+    std::vector<Lexeme> body;
+    return parseDefBody(source, word, body);
+  } break;
+  default:
+    fprintf(stderr, "expected WORD\n");
+    exit(EXIT_FAILURE);
+    break;
+  }
+
+  fprintf(stderr, "unexpected\n");
+  exit(EXIT_FAILURE);
+}
+
+std::optional<Expression> parse(LexemeSource &source) {
+  std::optional<Lexeme> lexeme = source.get();
+  if (!lexeme) {
+    return {};
+  }
+
+  switch (lexeme->type) {
+  case Lexeme::Type::NUM:
+    return Expression{Expression::Type::NUM, std::get<int64_t>(lexeme->data)};
+    break;
+  case Lexeme::Type::WORD:
+    return Expression{Expression::Type::WORD,
+                      std::get<std::string>(lexeme->data)};
+    break;
+  case Lexeme::Type::ADD:
+    return Expression{Expression::Type::ADD, {}};
+    break;
+  case Lexeme::Type::SUB:
+    return Expression{Expression::Type::SUB, {}};
+    break;
+  case Lexeme::Type::MUL:
+    return Expression{Expression::Type::MUL, {}};
+    break;
+  case Lexeme::Type::DIV:
+    return Expression{Expression::Type::DIV, {}};
+    break;
+  case Lexeme::Type::REM:
+    return Expression{Expression::Type::REM, {}};
+    break;
+  case Lexeme::Type::MOD:
+    return Expression{Expression::Type::MOD, {}};
+    break;
+  case Lexeme::Type::GT:
+    return Expression{Expression::Type::GT, {}};
+    break;
+  case Lexeme::Type::LT:
+    return Expression{Expression::Type::LT, {}};
+    break;
+  case Lexeme::Type::EQ:
+    return Expression{Expression::Type::EQ, {}};
+    break;
+  case Lexeme::Type::NEQ:
+    return Expression{Expression::Type::NEQ, {}};
+    break;
+  case Lexeme::Type::DOT:
+    return Expression{Expression::Type::DOT, {}};
+    break;
+  case Lexeme::Type::EMIT:
+    return Expression{Expression::Type::EMIT, {}};
+    break;
+  case Lexeme::Type::DUP:
+    return Expression{Expression::Type::DUP, {}};
+    break;
+  case Lexeme::Type::DROP:
+    return Expression{Expression::Type::DROP, {}};
+    break;
+  case Lexeme::Type::SWITCH:
+    return Expression{Expression::Type::SWITCH, {}};
+    break;
+  case Lexeme::Type::OVER:
+    return Expression{Expression::Type::OVER, {}};
+    break;
+  case Lexeme::Type::ROT:
+    return Expression{Expression::Type::ROT, {}};
+    break;
+  case Lexeme::Type::COL:
+    return parseDefWord(source);
+    break;
+  case Lexeme::Type::SEMICOL:
+    fprintf(stderr, "unexpected semicolon\n");
+    exit(EXIT_FAILURE);
+    break;
+  case Lexeme::Type::IF: {
+    std::vector<Lexeme> lexemes;
+    return parseIf(source, lexemes);
+  } break;
+  case Lexeme::Type::THEN:
+    fprintf(stderr, "unexpected THEN\n");
+    exit(EXIT_FAILURE);
+    break;
+  case Lexeme::Type::BEGIN:
+  case Lexeme::Type::UNTIL:
+    fprintf(stderr, "TODO\n");
+    exit(EXIT_FAILURE);
+    break;
+  }
+
+  fprintf(stderr, "unexpected\n");
+  exit(EXIT_FAILURE);
+}
+
 struct Engine {
   std::stack<std::int64_t> dataStack;
-  std::deque<Lexeme> instructionQueue;
-  std::map<std::string, std::vector<Lexeme>> wordDict;
+  std::map<std::string, std::vector<Expression>> defDict;
   void push(std::int64_t number) { dataStack.push(number); }
   std::int64_t pop() {
     if (dataStack.empty()) {
@@ -149,142 +416,72 @@ struct Engine {
     dataStack.pop();
     return result;
   }
-  std::optional<Lexeme> dequeueFrom(std::FILE *const fin) {
-    if (instructionQueue.empty()) {
-      return lex(fin);
-    } else {
-      const Lexeme result = instructionQueue.front();
-      instructionQueue.pop_front();
-      return result;
-    }
-  }
-  void evalWordDefBody(std::FILE *const fin, const std::string &word,
-                       std::vector<Lexeme> &def) {
-    const std::optional<Lexeme> lexeme = dequeueFrom(fin);
-    if (!lexeme) {
-      fprintf(stderr, "unexpected EOF\n");
-      exit(EXIT_FAILURE);
-    }
-    switch (lexeme->type) {
-    case Lexeme::Type::SEMICOL:
-      wordDict[word] = def;
+  void eval(const Expression &expression) {
+    switch (expression.type) {
+    case Expression::Type::NUM:
+      push(std::get<std::int64_t>(expression.data));
       break;
-    case Lexeme::Type::COL:
-      fprintf(stderr, "unexpected colon\n");
-      exit(EXIT_FAILURE);
-      break;
-    default:
-      def.push_back(*lexeme);
-      evalWordDefBody(fin, word, def);
-      break;
-    }
-  }
-  void evalWordDef(std::FILE *const fin) {
-    const std::optional<Lexeme> lexeme = dequeueFrom(fin);
-    if (!lexeme) {
-      fprintf(stderr, "unexpected EOF\n");
-      exit(EXIT_FAILURE);
-    }
-    switch (lexeme->type) {
-    case Lexeme::Type::WORD: {
-      const std::string &word = std::get<std::string>(lexeme->data);
-      std::vector<Lexeme> def;
-      evalWordDefBody(fin, word, def);
-    } break;
-    default:
-      fprintf(stderr, "expected word\n");
-      exit(EXIT_FAILURE);
-      break;
-    }
-  }
-  void evalIfSkip(std::FILE *const fin) {
-    const std::optional<Lexeme> lexeme = dequeueFrom(fin);
-    if (!lexeme) {
-      fprintf(stderr, "unexpected EOF\n");
-      exit(EXIT_FAILURE);
-    }
-    switch (lexeme->type) {
-    case Lexeme::Type::IF:
-      evalIfSkip(fin);
-      evalIfSkip(fin);
-      break;
-    case Lexeme::Type::THEN:
-      break;
-    default:
-      evalIfSkip(fin);
-      break;
-    }
-  }
-  bool eval(std::FILE *const fin) {
-    const std::optional<Lexeme> lexeme = dequeueFrom(fin);
-    if (!lexeme) {
-      return false;
-    }
-    switch (lexeme->type) {
-    case Lexeme::Type::NUM:
-      push(std::get<std::int64_t>(lexeme->data));
-      break;
-    case Lexeme::Type::ADD:
+    case Expression::Type::ADD:
       push(pop() + pop());
       break;
-    case Lexeme::Type::SUB:
+    case Expression::Type::SUB:
       push(pop() - pop());
       break;
-    case Lexeme::Type::MUL:
+    case Expression::Type::MUL:
       push(pop() * pop());
       break;
-    case Lexeme::Type::DIV:
+    case Expression::Type::DIV:
       push(pop() / pop());
       break;
-    case Lexeme::Type::REM:
+    case Expression::Type::REM:
       push(pop() % pop());
       break;
-    case Lexeme::Type::MOD: {
+    case Expression::Type::MOD: {
       const std::int64_t dividend = pop();
       const std::int64_t divisor = pop();
       const std::int64_t modulus = (dividend % divisor + divisor) % divisor;
       push(modulus);
     } break;
-    case Lexeme::Type::GT:
+    case Expression::Type::GT:
       push(std::int64_t(pop() > pop()));
       break;
-    case Lexeme::Type::LT:
+    case Expression::Type::LT:
       push(std::int64_t(pop() < pop()));
       break;
-    case Lexeme::Type::EQ:
+    case Expression::Type::EQ:
       push(std::int64_t(pop() == pop()));
       break;
-    case Lexeme::Type::NEQ:
+    case Expression::Type::NEQ:
       push(std::int64_t(pop() != pop()));
       break;
-    case Lexeme::Type::DOT:
+    case Expression::Type::DOT:
       printf("%ld ", pop());
       break;
-    case Lexeme::Type::EMIT:
+    case Expression::Type::EMIT:
       printf("%c", char(pop()));
       break;
-    case Lexeme::Type::DUP: {
+    case Expression::Type::DUP: {
       const std::int64_t top = pop();
       push(top);
       push(top);
     } break;
-    case Lexeme::Type::DROP:
+    case Expression::Type::DROP:
       pop();
       break;
-    case Lexeme::Type::SWITCH: {
+    case Expression::Type::SWITCH: {
       const std::int64_t b = pop();
       const std::int64_t a = pop();
       push(b);
       push(a);
     } break;
-    case Lexeme::Type::OVER: {
+    case Expression::Type::OVER: {
       const std::int64_t b = pop();
       const std::int64_t a = pop();
       push(a);
       push(b);
       push(a);
     } break;
-    case Lexeme::Type::ROT: {
+    case Expression::Type::ROT: {
       const std::int64_t c = pop();
       const std::int64_t b = pop();
       const std::int64_t a = pop();
@@ -292,38 +489,36 @@ struct Engine {
       push(c);
       push(a);
     } break;
-    case Lexeme::Type::WORD: {
-      const std::string &word = std::get<std::string>(lexeme->data);
-      if (auto find = wordDict.find(word); find != wordDict.end()) {
-        const auto &def = find->second;
-        instructionQueue.insert(instructionQueue.begin(), def.begin(),
-                                def.end());
+    case Expression::Type::WORD: {
+      const std::string &word = std::get<std::string>(expression.data);
+      if (auto find = defDict.find(word); find != defDict.end()) {
+        const std::vector<Expression> &body = find->second;
+        for (const Expression &expr : body) {
+          eval(expr);
+        }
       } else {
         fprintf(stderr, "unknown word\n");
         exit(EXIT_FAILURE);
       }
     } break;
-    case Lexeme::Type::COL:
-      evalWordDef(fin);
-      break;
-    case Lexeme::Type::SEMICOL:
-      fprintf(stderr, "unexpected semicolon\n");
+    case Expression::Type::DEF: {
+      const Expression::Def &def = std::get<Expression::Def>(expression.data);
+      defDict[def.word] = def.body;
+    } break;
+    case Expression::Type::IF: {
+      const bool cond = bool(pop());
+      if (cond) {
+        const std::vector<Expression> &body =
+            std::get<std::vector<Expression>>(expression.data);
+        for (const Expression &expr : body) {
+          eval(expr);
+        }
+      }
+    } break;
+    case Expression::Type::BEGIN:
+      fprintf(stderr, "TODO\n");
       exit(EXIT_FAILURE);
       break;
-    case Lexeme::Type::IF:
-      if (!bool(pop())) {
-        evalIfSkip(fin);
-      }
-      break;
-    case Lexeme::Type::THEN:
-      break;
-    }
-    return true;
-  }
-  void evalLoop(std::FILE *const fin) {
-    bool run = true;
-    while (run) {
-      run = eval(fin);
     }
   }
 };
@@ -345,11 +540,19 @@ int main(int argc, char **argv) {
       perror(argv[i]);
       exit(EXIT_FAILURE);
     }
-    engine.evalLoop(file);
+    LexemeSource source(file);
+    std::optional<Expression> expr;
+    while ((expr = parse(source))) {
+      engine.eval(*expr);
+    }
     fclose(file);
   }
   if (evalStdin) {
-    engine.evalLoop(stdin);
+    LexemeSource source(stdin);
+    std::optional<Expression> expr;
+    while ((expr = parse(source))) {
+      engine.eval(*expr);
+    }
   }
   return EXIT_SUCCESS;
 }
