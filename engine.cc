@@ -1,4 +1,5 @@
 #include "engine.hh"
+#include "parser.hh"
 
 void Engine::push(std::int64_t number) { dataStack.push(number); }
 
@@ -10,6 +11,12 @@ std::int64_t Engine::pop() {
   const std::int64_t result = dataStack.top();
   dataStack.pop();
   return result;
+}
+
+void Engine::evalBody(const Expression::Body &body) {
+  for (const Expression &expr : body) {
+    eval(expr);
+  }
 }
 
 void Engine::eval(const Expression &expression) {
@@ -88,7 +95,7 @@ void Engine::eval(const Expression &expression) {
   case Expression::Type::WORD: {
     const std::string &word = std::get<std::string>(expression.data);
     if (auto find = defDict.find(word); find != defDict.end()) {
-      const std::vector<Expression> &body = find->second;
+      const Expression::Body &body = find->second;
       for (const Expression &expr : body) {
         eval(expr);
       }
@@ -103,21 +110,25 @@ void Engine::eval(const Expression &expression) {
   } break;
   case Expression::Type::IF: {
     if (bool(pop())) {
-      const std::vector<Expression> &body =
-          std::get<std::vector<Expression>>(expression.data);
-      for (const Expression &expr : body) {
-        eval(expr);
-      }
+      const Expression::Body &body =
+          std::get<Expression::Body>(expression.data);
+      evalBody(body);
     }
   } break;
-  case Expression::Type::BEGIN:
+  case Expression::Type::BEGIN: {
+    const Expression::Body &body = std::get<Expression::Body>(expression.data);
     do {
-      const std::vector<Expression> &body =
-          std::get<std::vector<Expression>>(expression.data);
-      for (const Expression &expr : body) {
-        eval(expr);
-      }
-    } while (bool(pop()));
-    break;
+      evalBody(body);
+    } while (!bool(pop()));
+  } break;
+  case Expression::Type::BEGIN_WHILE: {
+    const Expression::BeginWhile &beginWhile =
+        std::get<Expression::BeginWhile>(expression.data);
+    evalBody(beginWhile.cond);
+    while (bool(pop())) {
+      evalBody(beginWhile.body);
+      evalBody(beginWhile.cond);
+    }
+  } break;
   }
 }

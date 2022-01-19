@@ -41,6 +41,8 @@ struct Lexeme {
 
     BEGIN,
     UNTIL,
+    WHILE,
+    REPEAT,
   } type;
   std::variant<std::monostate, std::int64_t, std::string> data;
 };

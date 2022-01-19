@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <vector>
 
 std::optional<Lexeme> LexemeSource::get() {
   switch (type) {
@@ -27,13 +28,38 @@ std::optional<Lexeme> LexemeSource::get() {
   exit(EXIT_FAILURE);
 }
 
-std::vector<Expression> parseAll(LexemeSource &source) {
-  std::vector<Expression> bodyExprs;
+Expression::Body parseAll(LexemeSource &source) {
+  Expression::Body body;
   std::optional<Expression> expr;
   while ((expr = parse(source))) {
-    bodyExprs.push_back(*expr);
+    body.push_back(*expr);
   }
-  return bodyExprs;
+  return body;
+}
+
+std::optional<Expression> parseBeginWhile(LexemeSource &source,
+                                          const Expression::Body &cond,
+                                          std::vector<Lexeme> &body) {
+  std::optional<Lexeme> lexeme = source.get();
+  if (!lexeme) {
+    fprintf(stderr, "unexpected EOF\n");
+    exit(EXIT_FAILURE);
+  }
+
+  switch (lexeme->type) {
+  case Lexeme::Type::REPEAT: {
+    LexemeSource bodySource{body.begin(), body.end()};
+    return Expression{Expression::Type::BEGIN_WHILE,
+                      Expression::BeginWhile{cond, parseAll(bodySource)}};
+  } break;
+  default: {
+    body.push_back(*lexeme);
+    return parseBeginWhile(source, cond, body);
+  } break;
+  }
+
+  fprintf(stderr, "unexpected\n");
+  exit(EXIT_FAILURE);
 }
 
 std::optional<Expression> parseBegin(LexemeSource &source,
@@ -49,10 +75,15 @@ std::optional<Expression> parseBegin(LexemeSource &source,
     LexemeSource bodySource{body.begin(), body.end()};
     return Expression{Expression::Type::BEGIN, parseAll(bodySource)};
   } break;
-  default: {
+  case Lexeme::Type::WHILE: {
+    LexemeSource condSource{body.begin(), body.end()};
+    std::vector<Lexeme> whileBody;
+    return parseBeginWhile(source, parseAll(condSource), whileBody);
+  } break;
+  default:
     body.push_back(*lexeme);
     return parseBegin(source, body);
-  } break;
+    break;
   }
 
   fprintf(stderr, "unexpected\n");
@@ -216,6 +247,14 @@ std::optional<Expression> parse(LexemeSource &source) {
   } break;
   case Lexeme::Type::UNTIL:
     fprintf(stderr, "unexpected UNTIL\n");
+    exit(EXIT_FAILURE);
+    break;
+  case Lexeme::Type::WHILE:
+    fprintf(stderr, "unexpected WHILE\n");
+    exit(EXIT_FAILURE);
+    break;
+  case Lexeme::Type::REPEAT:
+    fprintf(stderr, "unexpected REPEAT\n");
     exit(EXIT_FAILURE);
     break;
   }

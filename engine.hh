@@ -14,6 +14,7 @@ private:
   std::map<std::string, std::vector<Expression>> defDict;
   void push(std::int64_t number);
   std::int64_t pop();
+  void evalBody(const Expression::Body &body);
 
 public:
   void eval(const Expression &expression);

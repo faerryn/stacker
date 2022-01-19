@@ -62,13 +62,18 @@ struct Expression {
     DEF,
     IF,
     BEGIN,
+    BEGIN_WHILE,
   } type;
+  using Body = std::vector<Expression>;
   struct Def {
     std::string word;
-    std::vector<Expression> body;
+    Body body;
   };
-  std::variant<std::monostate, int64_t, std::string, Def,
-               std::vector<Expression>>
+  struct BeginWhile {
+    Body cond;
+    Body body;
+  };
+  std::variant<std::monostate, int64_t, std::string, Body, Def, BeginWhile>
       data;
 };
 
@@ -81,6 +86,9 @@ std::optional<Expression> parseIf(LexemeSource &source,
                                   std::vector<Lexeme> &body);
 std::optional<Expression> parseBegin(LexemeSource &source,
                                      std::vector<Lexeme> &body);
+std::optional<Expression> parseBeginWhile(LexemeSource &source,
+                                          const Expression::Body &cond,
+                                          std::vector<Lexeme> &body);
 std::vector<Expression> parseAll(LexemeSource &source);
 
 #endif // PARSER_HH
