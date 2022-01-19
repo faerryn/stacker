@@ -4,6 +4,19 @@
 #include <cstdlib>
 #include <vector>
 
+std::optional<Expression> parseDefWord(LexemeSource &source);
+std::optional<Expression> parseDefBody(LexemeSource &source,
+                                       const std::string &word,
+                                       std::vector<Lexeme> &body);
+std::optional<Expression> parseIf(LexemeSource &source,
+                                  std::vector<Lexeme> &body);
+std::optional<Expression> parseBegin(LexemeSource &source,
+                                     std::vector<Lexeme> &body);
+std::optional<Expression> parseBeginWhile(LexemeSource &source,
+                                          const Expression::Body &cond,
+                                          std::vector<Lexeme> &body);
+std::vector<Expression> parseAll(LexemeSource &source);
+
 std::optional<Lexeme> LexemeSource::get() {
   switch (type) {
   case Type::NONE:
@@ -173,7 +186,8 @@ std::optional<Expression> parse(LexemeSource &source) {
 
   switch (lexeme->type) {
   case Lexeme::Type::NUM:
-    return Expression{Expression::Type::NUM, std::get<int64_t>(lexeme->data)};
+    return Expression{Expression::Type::NUM,
+                      std::get<std::int64_t>(lexeme->data)};
     break;
   case Lexeme::Type::WORD:
     return Expression{Expression::Type::WORD,

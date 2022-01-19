@@ -19,6 +19,10 @@ void Engine::evalBody(const Expression::Body &body) {
   }
 }
 
+std::int64_t boolToInt64(bool b) { return b ? ~0 : 0; }
+
+bool int64ToBool(std::int64_t i) { return i != 0; }
+
 void Engine::eval(const Expression &expression) {
   switch (expression.type) {
   case Expression::Type::NUM:
@@ -46,16 +50,16 @@ void Engine::eval(const Expression &expression) {
     push(modulus);
   } break;
   case Expression::Type::GT:
-    push(std::int64_t(pop() > pop()));
+    push(boolToInt64(pop() > pop()));
     break;
   case Expression::Type::LT:
-    push(std::int64_t(pop() < pop()));
+    push(boolToInt64(pop() < pop()));
     break;
   case Expression::Type::EQ:
-    push(std::int64_t(pop() == pop()));
+    push(boolToInt64(pop() == pop()));
     break;
   case Expression::Type::NEQ:
-    push(std::int64_t(pop() != pop()));
+    push(boolToInt64(pop() != pop()));
     break;
   case Expression::Type::DOT:
     printf("%ld ", pop());
@@ -109,7 +113,7 @@ void Engine::eval(const Expression &expression) {
     defDict[def.word] = def.body;
   } break;
   case Expression::Type::IF: {
-    if (bool(pop())) {
+    if (int64ToBool(pop())) {
       const Expression::Body &body =
           std::get<Expression::Body>(expression.data);
       evalBody(body);
@@ -119,13 +123,13 @@ void Engine::eval(const Expression &expression) {
     const Expression::Body &body = std::get<Expression::Body>(expression.data);
     do {
       evalBody(body);
-    } while (!bool(pop()));
+    } while (!int64ToBool(pop()));
   } break;
   case Expression::Type::BEGIN_WHILE: {
     const Expression::BeginWhile &beginWhile =
         std::get<Expression::BeginWhile>(expression.data);
     evalBody(beginWhile.cond);
-    while (bool(pop())) {
+    while (int64ToBool(pop())) {
       evalBody(beginWhile.body);
       evalBody(beginWhile.cond);
     }

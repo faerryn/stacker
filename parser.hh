@@ -74,22 +74,10 @@ struct Expression {
     Body cond;
     Body body;
   };
-  std::variant<std::monostate, int64_t, std::string, Body, Def, BeginWhile>
+  std::variant<std::monostate, std::int64_t, std::string, Body, Def, BeginWhile>
       data;
 };
 
 std::optional<Expression> parse(LexemeSource &source);
-std::optional<Expression> parseDefWord(LexemeSource &source);
-std::optional<Expression> parseDefBody(LexemeSource &source,
-                                       const std::string &word,
-                                       std::vector<Lexeme> &body);
-std::optional<Expression> parseIf(LexemeSource &source,
-                                  std::vector<Lexeme> &body);
-std::optional<Expression> parseBegin(LexemeSource &source,
-                                     std::vector<Lexeme> &body);
-std::optional<Expression> parseBeginWhile(LexemeSource &source,
-                                          const Expression::Body &cond,
-                                          std::vector<Lexeme> &body);
-std::vector<Expression> parseAll(LexemeSource &source);
 
 #endif // PARSER_HH

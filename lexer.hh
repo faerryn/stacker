@@ -48,9 +48,6 @@ struct Lexeme {
   std::variant<std::monostate, std::int64_t, std::string> data;
 };
 
-std::optional<std::int64_t> lexInt(const std::string &ident);
-std::optional<Lexeme> lexWord(const std::string &word);
-std::optional<Lexeme> lexWord(std::FILE *const fin, std::string &word);
 std::optional<Lexeme> lex(std::FILE *fin);
 
 #endif // LEXER_HH
