@@ -13,9 +13,9 @@ Currently, STACKER implements the following:
   - char8 ([[https://ocaml.org/manual/lex.html#escape-sequence][OCAML-style]])
 - Arithmetic Operators
   - +
-  - - (non-conformal)
+  - -
   - *
-  - / (non-conformal)
+  - /
   - rem (FORTH mod)
   - mod (non-conformal: [[https://mathworld.wolfram.com/ResidueClass.html][residue class]])
 - Comparison Operators
