@@ -61,6 +61,15 @@ void Engine::eval(const Expression &expression) {
   case Expression::Type::NEQ:
     push(boolToInt64(pop() != pop()));
     break;
+  case Expression::Type::AND:
+    push(pop() & pop());
+    break;
+  case Expression::Type::OR:
+    push(pop() | pop());
+    break;
+  case Expression::Type::INVERT:
+    push(~pop());
+    break;
   case Expression::Type::DOT:
     printf("%ld ", pop());
     break;

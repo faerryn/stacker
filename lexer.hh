@@ -21,8 +21,11 @@ struct Lexeme {
     GT,
     LT,
     EQ,
-
     NEQ,
+
+    AND,
+    OR,
+    INVERT,
 
     DOT,
     EMIT,

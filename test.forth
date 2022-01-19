@@ -16,3 +16,9 @@
 10 begin dup 10 - fib2 . 1 swap - dup 0 = until cr
 
 1 if 84 emit else 70 emit then cr
+
+-1 invert .
+0 invert .
+-1 0 and .
+1 2 > .
+cr

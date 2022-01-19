@@ -256,6 +256,15 @@ std::optional<Expression> parse(LexemeSource &source) {
   case Lexeme::Type::NEQ:
     return Expression{Expression::Type::NEQ, {}};
     break;
+  case Lexeme::Type::AND:
+    return Expression{Expression::Type::AND, {}};
+    break;
+  case Lexeme::Type::OR:
+    return Expression{Expression::Type::OR, {}};
+    break;
+  case Lexeme::Type::INVERT:
+    return Expression{Expression::Type::INVERT, {}};
+    break;
   case Lexeme::Type::DOT:
     return Expression{Expression::Type::DOT, {}};
     break;

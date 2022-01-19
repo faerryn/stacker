@@ -39,26 +39,29 @@ std::optional<std::int64_t> lexInt(const std::string &ident) {
 
 std::optional<Lexeme> lexWord(const std::string &word) {
   const std::map<std::string, Lexeme::Type> operatorDict{
-      {"+", Lexeme::Type::ADD},       {"-", Lexeme::Type::SUB},
-      {"*", Lexeme::Type::MUL},       {"/", Lexeme::Type::DIV},
-      {"rem", Lexeme::Type::REM},     {"mod", Lexeme::Type::MOD},
+      {"+", Lexeme::Type::ADD},         {"-", Lexeme::Type::SUB},
+      {"*", Lexeme::Type::MUL},         {"/", Lexeme::Type::DIV},
+      {"rem", Lexeme::Type::REM},       {"mod", Lexeme::Type::MOD},
 
-      {">", Lexeme::Type::GT},        {"<", Lexeme::Type::LT},
-      {"=", Lexeme::Type::EQ},        {"<>", Lexeme::Type::NEQ},
+      {">", Lexeme::Type::GT},          {"<", Lexeme::Type::LT},
+      {"=", Lexeme::Type::EQ},          {"<>", Lexeme::Type::NEQ},
 
-      {"emit", Lexeme::Type::EMIT},   {".", Lexeme::Type::DOT},
+      {"and", Lexeme::Type::AND},       {"or", Lexeme::Type::OR},
+      {"invert", Lexeme::Type::INVERT},
 
-      {"dup", Lexeme::Type::DUP},     {"drop", Lexeme::Type::DROP},
-      {"swap", Lexeme::Type::SWAP},   {"over", Lexeme::Type::OVER},
+      {"emit", Lexeme::Type::EMIT},     {".", Lexeme::Type::DOT},
+
+      {"dup", Lexeme::Type::DUP},       {"drop", Lexeme::Type::DROP},
+      {"swap", Lexeme::Type::SWAP},     {"over", Lexeme::Type::OVER},
       {"rot", Lexeme::Type::ROT},
 
-      {":", Lexeme::Type::COL},       {";", Lexeme::Type::SEMICOL},
+      {":", Lexeme::Type::COL},         {";", Lexeme::Type::SEMICOL},
 
-      {"if", Lexeme::Type::IF},       {"then", Lexeme::Type::THEN},
+      {"if", Lexeme::Type::IF},         {"then", Lexeme::Type::THEN},
       {"else", Lexeme::Type::ELSE},
 
-      {"begin", Lexeme::Type::BEGIN}, {"until", Lexeme::Type::UNTIL},
-      {"while", Lexeme::Type::WHILE}, {"repeat", Lexeme::Type::REPEAT},
+      {"begin", Lexeme::Type::BEGIN},   {"until", Lexeme::Type::UNTIL},
+      {"while", Lexeme::Type::WHILE},   {"repeat", Lexeme::Type::REPEAT},
       {"again", Lexeme::Type::AGAIN},
   };
   if (word.empty()) {

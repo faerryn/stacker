@@ -21,10 +21,10 @@ Currently, STACKER implements the following operators:
   - [X] `<` (non-conformal: reversed order)
   - [X] '='
   - [X] '<>'
-- [ ] Logical Operations
-  - [ ] `and`
-  - [ ] `or`
-  - [ ] `invert`
+- [X] Logical Operations
+  - [X] `and`
+  - [X] `or`
+  - [X] `invert`
 - [X] Stack Operations
   - [X] `dup`
   - [X] `drop`

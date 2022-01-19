@@ -47,8 +47,11 @@ struct Expression {
     GT,
     LT,
     EQ,
-
     NEQ,
+
+    AND,
+    OR,
+    INVERT,
 
     DOT,
     EMIT,
