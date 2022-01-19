@@ -107,7 +107,7 @@ void Engine::eval(const Expression &expression) {
   } break;
   case Expression::Type::WORD: {
     const std::string &word = std::get<std::string>(expression.data);
-    if (auto find = defDict.find(word); find != defDict.end()) {
+    if (const auto &find = defDict.find(word); find != defDict.end()) {
       const Expression::Body &body = find->second;
       for (const Expression &expr : body) {
         eval(expr);
@@ -122,15 +122,14 @@ void Engine::eval(const Expression &expression) {
     defDict[def.word] = def.body;
   } break;
   case Expression::Type::IF: {
-    const Expression::Body &body =
-      std::get<Expression::Body>(expression.data);
+    const Expression::Body &body = std::get<Expression::Body>(expression.data);
     if (int64ToBool(pop())) {
       evalBody(body);
     }
   } break;
   case Expression::Type::IF_ELSE: {
     const Expression::IfElse &ifElse =
-      std::get<Expression::IfElse>(expression.data);
+        std::get<Expression::IfElse>(expression.data);
     if (int64ToBool(pop())) {
       evalBody(ifElse.ifBody);
     } else {
