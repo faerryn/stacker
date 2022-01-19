@@ -2,8 +2,8 @@
 #+STARTUP: indent
 
 * DONE FORTH-style boolean values (TRUE = -1, FALSE = 0)
-* TODO Standard Library with things like `2dup`, `/mod`, etc...
-* TODO Determine dictionary overwriting behavior (maybe OCaml-style closures?)
+* DONE Standard Library with things like `2dup`, `/mod`, etc...
+* DONE Determine dictionary overwriting behavior (maybe OCaml-style closures?)
 * TODO Figure out strings
 * TODO Eliminate use of printf
 * TODO Detect abuse of return stack
