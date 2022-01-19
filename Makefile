@@ -1,6 +1,6 @@
 CXXFLAGS ?= -g
 CXXFLAGS += -std=c++20 -Werror -Wall -Wextra -Wpedantic
-objects = stacker.o lexer.o parser.o engine.o
+objects = main.o lexer.o parser.o engine.o
 
 stacker: $(objects)
 	$(CXX) $(CXXFLAGS) -o stacker $(objects)
