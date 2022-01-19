@@ -18,6 +18,7 @@ std::optional<Expression> parseBegin(LexemeSource &source,
 std::optional<Expression> parseBeginWhile(LexemeSource &source,
                                           const Expression::Body &cond,
                                           std::vector<Lexeme> &body);
+std::optional<Expression> parseVariable(LexemeSource &source);
 std::vector<Expression> parseAll(LexemeSource &source);
 
 std::optional<Lexeme> LexemeSource::get() {
@@ -51,6 +52,25 @@ Expression::Body parseAll(LexemeSource &source) {
     body.push_back(*expr);
   }
   return body;
+}
+
+std::optional<Expression> parseVariable(LexemeSource &source) {
+  std::optional<Lexeme> lexeme = source.get();
+  if (!lexeme) {
+    fprintf(stderr, "unexpected EOF\n");
+    exit(EXIT_FAILURE);
+  }
+
+  switch (lexeme->type) {
+  case Lexeme::Type::WORD:
+    return Expression{Expression::Type::VARIABLE,
+                      std::get<std::string>(lexeme->data)};
+    break;
+  default:
+    fprintf(stderr, "expected word\n");
+    exit(EXIT_FAILURE);
+    break;
+  }
 }
 
 std::optional<Expression> parseBeginWhile(LexemeSource &source,
@@ -218,6 +238,7 @@ std::optional<Expression> parse(LexemeSource &source) {
   }
 
   switch (lexeme->type) {
+
   case Lexeme::Type::NUM:
     return Expression{Expression::Type::NUM,
                       std::get<std::int64_t>(lexeme->data)};
@@ -226,6 +247,7 @@ std::optional<Expression> parse(LexemeSource &source) {
     return Expression{Expression::Type::WORD,
                       std::get<std::string>(lexeme->data)};
     break;
+
   case Lexeme::Type::ADD:
     return Expression{Expression::Type::ADD, {}};
     break;
@@ -244,6 +266,7 @@ std::optional<Expression> parse(LexemeSource &source) {
   case Lexeme::Type::MOD:
     return Expression{Expression::Type::MOD, {}};
     break;
+
   case Lexeme::Type::GT:
     return Expression{Expression::Type::GT, {}};
     break;
@@ -256,6 +279,7 @@ std::optional<Expression> parse(LexemeSource &source) {
   case Lexeme::Type::NEQ:
     return Expression{Expression::Type::NEQ, {}};
     break;
+
   case Lexeme::Type::AND:
     return Expression{Expression::Type::AND, {}};
     break;
@@ -265,12 +289,14 @@ std::optional<Expression> parse(LexemeSource &source) {
   case Lexeme::Type::INVERT:
     return Expression{Expression::Type::INVERT, {}};
     break;
+
   case Lexeme::Type::DOT:
     return Expression{Expression::Type::DOT, {}};
     break;
   case Lexeme::Type::EMIT:
     return Expression{Expression::Type::EMIT, {}};
     break;
+
   case Lexeme::Type::DUP:
     return Expression{Expression::Type::DUP, {}};
     break;
@@ -286,12 +312,14 @@ std::optional<Expression> parse(LexemeSource &source) {
   case Lexeme::Type::ROT:
     return Expression{Expression::Type::ROT, {}};
     break;
+
   case Lexeme::Type::RPUT:
     return Expression{Expression::Type::RPUT, {}};
     break;
   case Lexeme::Type::RGET:
     return Expression{Expression::Type::RGET, {}};
     break;
+
   case Lexeme::Type::COL:
     return parseDefWord(source);
     break;
@@ -299,6 +327,7 @@ std::optional<Expression> parse(LexemeSource &source) {
     fprintf(stderr, "unexpected semicolon\n");
     exit(EXIT_FAILURE);
     break;
+
   case Lexeme::Type::IF: {
     std::vector<Lexeme> lexemes;
     return parseIf(source, lexemes);
@@ -311,6 +340,7 @@ std::optional<Expression> parse(LexemeSource &source) {
     fprintf(stderr, "unexpected ELSE\n");
     exit(EXIT_FAILURE);
     break;
+
   case Lexeme::Type::BEGIN: {
     std::vector<Lexeme> lexemes;
     return parseBegin(source, lexemes);
@@ -330,6 +360,16 @@ std::optional<Expression> parse(LexemeSource &source) {
   case Lexeme::Type::AGAIN:
     fprintf(stderr, "unexpected AGAIN\n");
     exit(EXIT_FAILURE);
+    break;
+
+  case Lexeme::Type::VARIABLE:
+    return parseVariable(source);
+    break;
+  case Lexeme::Type::STORE:
+    return Expression{Expression::Type::STORE, {}};
+    break;
+  case Lexeme::Type::FETCH:
+    return Expression{Expression::Type::FETCH, {}};
     break;
   }
 

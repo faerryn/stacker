@@ -73,6 +73,10 @@ struct Expression {
     BEGIN,
     BEGIN_WHILE,
     BEGIN_AGAIN,
+
+    VARIABLE,
+    STORE,
+    FETCH,
   } type;
   using Body = std::vector<Expression>;
   struct Def {

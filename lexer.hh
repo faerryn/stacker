@@ -51,6 +51,10 @@ struct Lexeme {
     WHILE,
     REPEAT,
     AGAIN,
+
+    VARIABLE,
+    STORE,
+    FETCH,
   } type;
   std::variant<std::monostate, std::int64_t, std::string> data;
 };

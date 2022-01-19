@@ -13,14 +13,14 @@ Currently, STACKER implements the following:
   - char8 ([[https://ocaml.org/manual/lex.html#escape-sequence][OCAML-style]])
 - Arithmetic Operators
   - +
-  - - (non-conformal: reversed order)
+  - - (non-conformal)
   - *
-  - / (non-conformal: reversed order)
-  - rem (reversed order FORTH mod)
-  - mod (non-conformal: reversed order [[https://mathworld.wolfram.com/ResidueClass.html][residue class]])
+  - / (non-conformal)
+  - rem (FORTH mod)
+  - mod (non-conformal: [[https://mathworld.wolfram.com/ResidueClass.html][residue class]])
 - Comparison Operators
-  - > (non-conformal: reversed order)
-  - < (non-conformal: reversed order)
+  - >
+  - <
   - '='
   - '<>'
 - Logical Operations
@@ -40,3 +40,7 @@ Currently, STACKER implements the following:
   - begin/until
   - begin/again
   - begin/while/repeat
+- Storage
+  - variable
+  - !
+  - @

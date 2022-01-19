@@ -156,39 +156,89 @@ std::optional<std::int64_t> lexInt64(const std::string &ident) {
 }
 
 std::optional<Lexeme> lexString(const std::string &word) {
-  const std::map<std::string, Lexeme::Type> operatorDict{
-      {"+", Lexeme::Type::ADD},         {"-", Lexeme::Type::SUB},
-      {"*", Lexeme::Type::MUL},         {"/", Lexeme::Type::DIV},
-      {"rem", Lexeme::Type::REM},       {"mod", Lexeme::Type::MOD},
-
-      {">", Lexeme::Type::GT},          {"<", Lexeme::Type::LT},
-      {"=", Lexeme::Type::EQ},          {"<>", Lexeme::Type::NEQ},
-
-      {"and", Lexeme::Type::AND},       {"or", Lexeme::Type::OR},
-      {"invert", Lexeme::Type::INVERT},
-
-      {"emit", Lexeme::Type::EMIT},     {".", Lexeme::Type::DOT},
-
-      {"dup", Lexeme::Type::DUP},       {"drop", Lexeme::Type::DROP},
-      {"swap", Lexeme::Type::SWAP},     {"over", Lexeme::Type::OVER},
-      {"rot", Lexeme::Type::ROT},
-
-      {">r", Lexeme::Type::RPUT},       {"r>", Lexeme::Type::RGET},
-
-      {":", Lexeme::Type::COL},         {";", Lexeme::Type::SEMICOL},
-
-      {"if", Lexeme::Type::IF},         {"then", Lexeme::Type::THEN},
-      {"else", Lexeme::Type::ELSE},
-
-      {"begin", Lexeme::Type::BEGIN},   {"until", Lexeme::Type::UNTIL},
-      {"while", Lexeme::Type::WHILE},   {"repeat", Lexeme::Type::REPEAT},
-      {"again", Lexeme::Type::AGAIN},
-  };
-  const auto &find = operatorDict.find(word);
-  if (find != operatorDict.end()) {
-    return Lexeme{find->second, {}};
-  } else if (word.empty()) {
+  if (word.empty()) {
     return {};
+
+  } else if (word == "+") {
+    return Lexeme{Lexeme::Type::ADD, {}};
+  } else if (word == "-") {
+    return Lexeme{Lexeme::Type::SUB, {}};
+  } else if (word == "*") {
+    return Lexeme{Lexeme::Type::MUL, {}};
+  } else if (word == "/") {
+    return Lexeme{Lexeme::Type::DIV, {}};
+  } else if (word == "rem") {
+    return Lexeme{Lexeme::Type::REM, {}};
+  } else if (word == "mod") {
+    return Lexeme{Lexeme::Type::MOD, {}};
+
+  } else if (word == ">") {
+    return Lexeme{Lexeme::Type::GT, {}};
+  } else if (word == "<") {
+    return Lexeme{Lexeme::Type::LT, {}};
+  } else if (word == "=") {
+    return Lexeme{Lexeme::Type::EQ, {}};
+  } else if (word == "<>") {
+    return Lexeme{Lexeme::Type::NEQ, {}};
+
+  } else if (word == "and") {
+    return Lexeme{Lexeme::Type::AND, {}};
+  } else if (word == "or") {
+    return Lexeme{Lexeme::Type::OR, {}};
+  } else if (word == "invert") {
+    return Lexeme{Lexeme::Type::INVERT, {}};
+
+  } else if (word == "emit") {
+    return Lexeme{Lexeme::Type::EMIT, {}};
+  } else if (word == ".") {
+    return Lexeme{Lexeme::Type::DOT, {}};
+
+  } else if (word == "dup") {
+    return Lexeme{Lexeme::Type::DUP, {}};
+  } else if (word == "drop") {
+    return Lexeme{Lexeme::Type::DROP, {}};
+  } else if (word == "swap") {
+    return Lexeme{Lexeme::Type::SWAP, {}};
+  } else if (word == "over") {
+    return Lexeme{Lexeme::Type::OVER, {}};
+  } else if (word == "rot") {
+    return Lexeme{Lexeme::Type::ROT, {}};
+
+  } else if (word == ">r") {
+    return Lexeme{Lexeme::Type::RPUT, {}};
+  } else if (word == "r>") {
+    return Lexeme{Lexeme::Type::RGET, {}};
+
+  } else if (word == ":") {
+    return Lexeme{Lexeme::Type::COL, {}};
+  } else if (word == ";") {
+    return Lexeme{Lexeme::Type::SEMICOL, {}};
+
+  } else if (word == "if") {
+    return Lexeme{Lexeme::Type::IF, {}};
+  } else if (word == "then") {
+    return Lexeme{Lexeme::Type::THEN, {}};
+  } else if (word == "else") {
+    return Lexeme{Lexeme::Type::ELSE, {}};
+
+  } else if (word == "begin") {
+    return Lexeme{Lexeme::Type::BEGIN, {}};
+  } else if (word == "until") {
+    return Lexeme{Lexeme::Type::UNTIL, {}};
+  } else if (word == "while") {
+    return Lexeme{Lexeme::Type::WHILE, {}};
+  } else if (word == "repeat") {
+    return Lexeme{Lexeme::Type::REPEAT, {}};
+  } else if (word == "again") {
+    return Lexeme{Lexeme::Type::AGAIN, {}};
+
+  } else if (word == "variable") {
+    return Lexeme{Lexeme::Type::VARIABLE, {}};
+  } else if (word == "!") {
+    return Lexeme{Lexeme::Type::STORE, {}};
+  } else if (word == "@") {
+    return Lexeme{Lexeme::Type::FETCH, {}};
+
   } else {
     const std::optional<std::int64_t> num = lexInt64(word);
     if (num) {
