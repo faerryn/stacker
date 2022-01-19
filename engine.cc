@@ -129,6 +129,10 @@ void Engine::eval(const Expression &expression) {
   } break;
   case Expression::Type::DEF: {
     const Expression::Def &def = std::get<Expression::Def>(expression.data);
+    if (dictionary.contains(def.word)) {
+      fprintf(stderr, "word already defined\n");
+      exit(EXIT_FAILURE);
+    }
     dictionary[def.word] = def.body;
   } break;
   case Expression::Type::IF: {
