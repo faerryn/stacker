@@ -10,6 +10,9 @@ std::optional<Expression> parseDefBody(LexemeSource &source,
                                        std::vector<Lexeme> &body);
 std::optional<Expression> parseIf(LexemeSource &source,
                                   std::vector<Lexeme> &body);
+std::optional<Expression> parseIfElse(LexemeSource &source,
+                                      const Expression::Body &ifBody,
+                                      std::vector<Lexeme> &body);
 std::optional<Expression> parseBegin(LexemeSource &source,
                                      std::vector<Lexeme> &body);
 std::optional<Expression> parseBeginWhile(LexemeSource &source,
@@ -107,6 +110,31 @@ std::optional<Expression> parseBegin(LexemeSource &source,
   exit(EXIT_FAILURE);
 }
 
+std::optional<Expression> parseIfElse(LexemeSource &source,
+                                      const Expression::Body &ifBody,
+                                      std::vector<Lexeme> &body) {
+  std::optional<Lexeme> lexeme = source.get();
+  if (!lexeme) {
+    fprintf(stderr, "unexpected EOF\n");
+    exit(EXIT_FAILURE);
+  }
+
+  switch (lexeme->type) {
+  case Lexeme::Type::THEN: {
+    LexemeSource bodySource{body.begin(), body.end()};
+    return Expression{Expression::Type::IF_ELSE,
+                      Expression::IfElse{ifBody, parseAll(bodySource)}};
+  } break;
+  default: {
+    body.push_back(*lexeme);
+    return parseIfElse(source, ifBody, body);
+  } break;
+  }
+
+  fprintf(stderr, "unexpected\n");
+  exit(EXIT_FAILURE);
+}
+
 std::optional<Expression> parseIf(LexemeSource &source,
                                   std::vector<Lexeme> &body) {
   std::optional<Lexeme> lexeme = source.get();
@@ -120,6 +148,11 @@ std::optional<Expression> parseIf(LexemeSource &source,
     LexemeSource bodySource{body.begin(), body.end()};
     return Expression{Expression::Type::IF, parseAll(bodySource)};
   } break;
+  case Lexeme::Type::ELSE: {
+    LexemeSource bodySource{body.begin(), body.end()};
+    std::vector<Lexeme> elseBody;
+    return parseIfElse(source, parseAll(bodySource), elseBody);
+  }
   default: {
     body.push_back(*lexeme);
     return parseIf(source, body);
@@ -257,6 +290,10 @@ std::optional<Expression> parse(LexemeSource &source) {
   } break;
   case Lexeme::Type::THEN:
     fprintf(stderr, "unexpected THEN\n");
+    exit(EXIT_FAILURE);
+    break;
+  case Lexeme::Type::ELSE:
+    fprintf(stderr, "unexpected ELSE\n");
     exit(EXIT_FAILURE);
     break;
   case Lexeme::Type::BEGIN: {

@@ -38,6 +38,7 @@ struct Lexeme {
 
     IF,
     THEN,
+    ELSE,
 
     BEGIN,
     UNTIL,

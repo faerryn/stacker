@@ -113,10 +113,19 @@ void Engine::eval(const Expression &expression) {
     defDict[def.word] = def.body;
   } break;
   case Expression::Type::IF: {
+    const Expression::Body &body =
+      std::get<Expression::Body>(expression.data);
     if (int64ToBool(pop())) {
-      const Expression::Body &body =
-          std::get<Expression::Body>(expression.data);
       evalBody(body);
+    }
+  } break;
+  case Expression::Type::IF_ELSE: {
+    const Expression::IfElse &ifElse =
+      std::get<Expression::IfElse>(expression.data);
+    if (int64ToBool(pop())) {
+      evalBody(ifElse.ifBody);
+    } else {
+      evalBody(ifElse.elseBody);
     }
   } break;
   case Expression::Type::BEGIN: {
@@ -128,10 +137,10 @@ void Engine::eval(const Expression &expression) {
   case Expression::Type::BEGIN_WHILE: {
     const Expression::BeginWhile &beginWhile =
         std::get<Expression::BeginWhile>(expression.data);
-    evalBody(beginWhile.cond);
+    evalBody(beginWhile.condBody);
     while (int64ToBool(pop())) {
-      evalBody(beginWhile.body);
-      evalBody(beginWhile.cond);
+      evalBody(beginWhile.whileBody);
+      evalBody(beginWhile.condBody);
     }
   } break;
   case Expression::Type::BEGIN_AGAIN: {

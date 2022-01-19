@@ -9,7 +9,7 @@ FOTH-style strings, and it does not support dictionary operations.
 STACKER also has divergent operator behaviors, documented below.
 
 Currently, STACKER implements the following operators:
-- [-] Arithmetic Operators
+- [X] Arithmetic Operators
   - [X] `+`
   - [X] `-` (non-conformal: reversed order)
   - [X] `*`
@@ -31,9 +31,9 @@ Currently, STACKER implements the following operators:
   - [X] `swap`
   - [X] `over`
   - [X] `rot`
-- [-] Conditionals
+- [X] Conditionals
   - [X] if/then
-  - [ ] if/else/then
+  - [X] if/else/then
 - [X] Loops
   - [X] begin/until
   - [X] begin/again

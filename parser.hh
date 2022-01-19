@@ -60,7 +60,10 @@ struct Expression {
     ROT,
 
     DEF,
+
     IF,
+    IF_ELSE,
+
     BEGIN,
     BEGIN_WHILE,
     BEGIN_AGAIN,
@@ -71,10 +74,15 @@ struct Expression {
     Body body;
   };
   struct BeginWhile {
-    Body cond;
-    Body body;
+    Body condBody;
+    Body whileBody;
   };
-  std::variant<std::monostate, std::int64_t, std::string, Body, Def, BeginWhile>
+  struct IfElse {
+    Body ifBody;
+    Body elseBody;
+  };
+  std::variant<std::monostate, std::int64_t, std::string, Body, Def, BeginWhile,
+               IfElse>
       data;
 };
 
