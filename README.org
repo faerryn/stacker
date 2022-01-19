@@ -1,4 +1,3 @@
-#+TITLE: STACKER
 #+STARTUP: indent
 
 * STACKER
