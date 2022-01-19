@@ -1,7 +1,7 @@
 CXXFLAGS ?= -g
 CXXFLAGS += -std=c++20 -Werror -Wall -Wextra -Wpedantic
 
-sources := main.cc lexer.cc parser.cc engine.cc
+sources := $(wildcard *.cc)
 objects := $(patsubst %.cc,%.o,$(sources))
 depends := $(patsubst %.cc,%.d,$(sources))
 
