@@ -1,16 +1,14 @@
-: fib dup 1 > if dup 1- fib swap 2- fib + then ;
-: fib2 0 1 rot begin dup 0> while -rot tuck + rot 1- repeat drop drop ;
+: fact dup 0= if drop 1 else dup 1- fact * then ;
+: fib 0 1 rot begin dup 0> while -rot tuck + rot 1- repeat drop drop ;
 
 : cr '\n' emit ;
 
 variable num
-30 num !
+20 num !
+: NUM num @ ;
 
-num @ begin dup . 1- dup 0= until cr
-num @ begin dup 0> while dup . 1- repeat cr
+NUM fact . cr
+NUM fib . cr
 
-num @ fib . cr
-num @ fib2 . cr
-
-num @ begin dup num @ swap - fib  . 1- dup 0 = until cr
-num @ begin dup num @ swap - fib2 . 1- dup 0 = until cr
+0 begin dup NUM < while dup fact . 1+ repeat cr
+0 begin dup NUM < while dup fib  . 1+ repeat cr
