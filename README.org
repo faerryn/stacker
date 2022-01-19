@@ -5,7 +5,7 @@
 STACKER is a buggy, non-conformal interpreter for a subset of [[https://www.forth.com/][FORTH]], a
 stack-based language.  STACKER diverges from FORTH standard in a
 number of ways: STACKER is case-sensitive, it does not support FOTH's
-dot-quote strings, and it does not support dictionary operations.
+dot-quote strings, and it forbids modifying already-defind words.
 STACKER also has divergent behaviors, documented below.
 
 Currently, STACKER implements the following:
