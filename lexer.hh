@@ -36,6 +36,9 @@ struct Lexeme {
     OVER,
     ROT,
 
+    RPUT,
+    RGET,
+
     COL,
     SEMICOL,
 

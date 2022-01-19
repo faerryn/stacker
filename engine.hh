@@ -10,12 +10,18 @@
 
 class Engine {
 private:
-  std::stack<std::int64_t> dataStack;
-  std::map<std::string, std::vector<Expression>> defDict;
-  void push(std::int64_t number);
-  std::int64_t pop();
-  void evalBody(const Expression::Body &body);
+  class Stack {
+  private:
+    std::stack<std::int64_t> data;
+  public:
+    void push(std::int64_t number);
+    std::int64_t pop();
+  };
+  Stack parameterStack;
+  Stack returnStack;
+  std::map<std::string, Expression::Body> dictionary;
 
+  void evalBody(const Expression::Body &body);
 public:
   void eval(const Expression &expression);
 };

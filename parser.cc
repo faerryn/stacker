@@ -286,6 +286,12 @@ std::optional<Expression> parse(LexemeSource &source) {
   case Lexeme::Type::ROT:
     return Expression{Expression::Type::ROT, {}};
     break;
+  case Lexeme::Type::RPUT:
+    return Expression{Expression::Type::RPUT, {}};
+    break;
+  case Lexeme::Type::RGET:
+    return Expression{Expression::Type::RGET, {}};
+    break;
   case Lexeme::Type::COL:
     return parseDefWord(source);
     break;

@@ -1,15 +1,18 @@
 #include "engine.hh"
+
+#include <cstdio>
+
 #include "parser.hh"
 
-void Engine::push(std::int64_t number) { dataStack.push(number); }
+void Engine::Stack::push(std::int64_t number) { data.push(number); }
 
-std::int64_t Engine::pop() {
-  if (dataStack.empty()) {
+std::int64_t Engine::Stack::pop() {
+  if (data.empty()) {
     fprintf(stderr, "empty stack\n");
     exit(EXIT_FAILURE);
   }
-  const std::int64_t result = dataStack.top();
-  dataStack.pop();
+  const std::int64_t result = data.top();
+  data.pop();
   return result;
 }
 
@@ -26,88 +29,94 @@ bool int64ToBool(std::int64_t i) { return i != 0; }
 void Engine::eval(const Expression &expression) {
   switch (expression.type) {
   case Expression::Type::NUM:
-    push(std::get<std::int64_t>(expression.data));
+    parameterStack.push(std::get<std::int64_t>(expression.data));
     break;
   case Expression::Type::ADD:
-    push(pop() + pop());
+    parameterStack.push(parameterStack.pop() + parameterStack.pop());
     break;
   case Expression::Type::SUB:
-    push(pop() - pop());
+    parameterStack.push(parameterStack.pop() - parameterStack.pop());
     break;
   case Expression::Type::MUL:
-    push(pop() * pop());
+    parameterStack.push(parameterStack.pop() * parameterStack.pop());
     break;
   case Expression::Type::DIV:
-    push(pop() / pop());
+    parameterStack.push(parameterStack.pop() / parameterStack.pop());
     break;
   case Expression::Type::REM:
-    push(pop() % pop());
+    parameterStack.push(parameterStack.pop() % parameterStack.pop());
     break;
   case Expression::Type::MOD: {
-    const std::int64_t dividend = pop();
-    const std::int64_t divisor = pop();
+    const std::int64_t dividend = parameterStack.pop();
+    const std::int64_t divisor = parameterStack.pop();
     const std::int64_t modulus = (dividend % divisor + divisor) % divisor;
-    push(modulus);
+    parameterStack.push(modulus);
   } break;
   case Expression::Type::GT:
-    push(boolToInt64(pop() > pop()));
+    parameterStack.push(boolToInt64(parameterStack.pop() > parameterStack.pop()));
     break;
   case Expression::Type::LT:
-    push(boolToInt64(pop() < pop()));
+    parameterStack.push(boolToInt64(parameterStack.pop() < parameterStack.pop()));
     break;
   case Expression::Type::EQ:
-    push(boolToInt64(pop() == pop()));
+    parameterStack.push(boolToInt64(parameterStack.pop() == parameterStack.pop()));
     break;
   case Expression::Type::NEQ:
-    push(boolToInt64(pop() != pop()));
+    parameterStack.push(boolToInt64(parameterStack.pop() != parameterStack.pop()));
     break;
   case Expression::Type::AND:
-    push(pop() & pop());
+    parameterStack.push(parameterStack.pop() & parameterStack.pop());
     break;
   case Expression::Type::OR:
-    push(pop() | pop());
+    parameterStack.push(parameterStack.pop() | parameterStack.pop());
     break;
   case Expression::Type::INVERT:
-    push(~pop());
+    parameterStack.push(~parameterStack.pop());
     break;
   case Expression::Type::DOT:
-    printf("%ld ", pop());
+    printf("%ld ", parameterStack.pop());
     break;
   case Expression::Type::EMIT:
-    printf("%c", char(pop()));
+    printf("%c", char(parameterStack.pop()));
     break;
   case Expression::Type::DUP: {
-    const std::int64_t top = pop();
-    push(top);
-    push(top);
+    const std::int64_t top = parameterStack.pop();
+    parameterStack.push(top);
+    parameterStack.push(top);
   } break;
   case Expression::Type::DROP:
-    pop();
+    parameterStack.pop();
     break;
   case Expression::Type::SWAP: {
-    const std::int64_t b = pop();
-    const std::int64_t a = pop();
-    push(b);
-    push(a);
+    const std::int64_t b = parameterStack.pop();
+    const std::int64_t a = parameterStack.pop();
+    parameterStack.push(b);
+    parameterStack.push(a);
   } break;
   case Expression::Type::OVER: {
-    const std::int64_t b = pop();
-    const std::int64_t a = pop();
-    push(a);
-    push(b);
-    push(a);
+    const std::int64_t b = parameterStack.pop();
+    const std::int64_t a = parameterStack.pop();
+    parameterStack.push(a);
+    parameterStack.push(b);
+    parameterStack.push(a);
   } break;
   case Expression::Type::ROT: {
-    const std::int64_t c = pop();
-    const std::int64_t b = pop();
-    const std::int64_t a = pop();
-    push(b);
-    push(c);
-    push(a);
+    const std::int64_t c = parameterStack.pop();
+    const std::int64_t b = parameterStack.pop();
+    const std::int64_t a = parameterStack.pop();
+    parameterStack.push(b);
+    parameterStack.push(c);
+    parameterStack.push(a);
   } break;
+  case Expression::Type::RPUT:
+    returnStack.push(parameterStack.pop());
+    break;
+  case Expression::Type::RGET:
+    parameterStack.push(returnStack.pop());
+    break;
   case Expression::Type::WORD: {
     const std::string &word = std::get<std::string>(expression.data);
-    if (const auto &find = defDict.find(word); find != defDict.end()) {
+    if (const auto &find = dictionary.find(word); find != dictionary.end()) {
       const Expression::Body &body = find->second;
       for (const Expression &expr : body) {
         eval(expr);
@@ -119,18 +128,18 @@ void Engine::eval(const Expression &expression) {
   } break;
   case Expression::Type::DEF: {
     const Expression::Def &def = std::get<Expression::Def>(expression.data);
-    defDict[def.word] = def.body;
+    dictionary[def.word] = def.body;
   } break;
   case Expression::Type::IF: {
     const Expression::Body &body = std::get<Expression::Body>(expression.data);
-    if (int64ToBool(pop())) {
+    if (int64ToBool(parameterStack.pop())) {
       evalBody(body);
     }
   } break;
   case Expression::Type::IF_ELSE: {
     const Expression::IfElse &ifElse =
         std::get<Expression::IfElse>(expression.data);
-    if (int64ToBool(pop())) {
+    if (int64ToBool(parameterStack.pop())) {
       evalBody(ifElse.ifBody);
     } else {
       evalBody(ifElse.elseBody);
@@ -140,13 +149,13 @@ void Engine::eval(const Expression &expression) {
     const Expression::Body &body = std::get<Expression::Body>(expression.data);
     do {
       evalBody(body);
-    } while (!int64ToBool(pop()));
+    } while (!int64ToBool(parameterStack.pop()));
   } break;
   case Expression::Type::BEGIN_WHILE: {
     const Expression::BeginWhile &beginWhile =
         std::get<Expression::BeginWhile>(expression.data);
     evalBody(beginWhile.condBody);
-    while (int64ToBool(pop())) {
+    while (int64ToBool(parameterStack.pop())) {
       evalBody(beginWhile.whileBody);
       evalBody(beginWhile.condBody);
     }

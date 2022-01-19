@@ -62,6 +62,9 @@ struct Expression {
     OVER,
     ROT,
 
+    RPUT,
+    RGET,
+
     DEF,
 
     IF,

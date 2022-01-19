@@ -6,3 +6,4 @@
 * TODO Determine dictionary overwriting behavior (maybe OCaml-style closures?)
 * TODO Figure out strings
 * TODO Eliminate use of printf
+* TODO Detect abuse of return stack

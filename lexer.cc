@@ -110,6 +110,8 @@ std::optional<Lexeme> lexString(const std::string &word) {
       {"swap", Lexeme::Type::SWAP},     {"over", Lexeme::Type::OVER},
       {"rot", Lexeme::Type::ROT},
 
+      {">r", Lexeme::Type::RPUT},       {"r>", Lexeme::Type::RGET},
+
       {":", Lexeme::Type::COL},         {";", Lexeme::Type::SEMICOL},
 
       {"if", Lexeme::Type::IF},         {"then", Lexeme::Type::THEN},
