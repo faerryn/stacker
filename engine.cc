@@ -116,7 +116,8 @@ void Engine::eval(const Expression &expression) {
     break;
   case Expression::Type::WORD: {
     const std::string &word = std::get<std::string>(expression.data);
-    if (const auto &find = dictionary.find(word); find != dictionary.end()) {
+    const auto &find = dictionary.find(word);
+    if (find != dictionary.end()) {
       const Expression::Body &body = find->second;
       for (const Expression &expr : body) {
         eval(expr);

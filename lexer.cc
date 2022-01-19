@@ -12,30 +12,92 @@ std::optional<Lexeme> lexWord(std::FILE *const fin, std::string &word);
 int lexChar(std::FILE *const fin);
 int lexEscape(std::FILE *const fin);
 
+std::optional<int> chToDec(int ch) {
+  if ('0' <= ch && ch <= '9') {
+    return ch - '0';
+  } else {
+    return {};
+  }
+}
+
+std::optional<int> chToHex(int ch) {
+  if ('0' <= ch && ch <= '9') {
+    return ch - '0';
+  } else if ('A' <= ch && ch <= 'F') {
+    return 10 + ch - 'A';
+  } else if ('a' <= ch && ch <= 'f') {
+    return 10 + ch - 'a';
+  } else {
+    return {};
+  }
+}
+
+std::optional<int> chToOct(int ch) {
+  if ('0' <= ch && ch <= '7') {
+    return ch - '0';
+  } else {
+    return {};
+  }
+}
+
 int lexEscape(std::FILE *const fin) {
   const int ch = fgetc(fin);
 
   if (ch == EOF) {
-    fprintf(stderr, "unexpected EOF");
+    fprintf(stderr, "unexpected EOF\n");
     exit(EXIT_FAILURE);
   }
 
-  switch (ch) {
-  case 'n':
+  if (ch == 'n') {
     return '\n';
-    break;
-  case 'r':
+  } else if (ch == 'r') {
     return '\r';
-    break;
-  case 't':
+  } else if (ch == 't') {
     return '\t';
-    break;
-  case 'b':
+  } else if (ch == '\b') {
     return '\b';
-    break;
-  default:
+  } else if (const std::optional<int> &a = chToDec(ch); a) {
+    const std::optional<int> b = chToDec(fgetc(fin));
+    const std::optional<int> c = chToDec(fgetc(fin));
+    if (!b || !c) {
+      fprintf(stderr, "expected decimal\n");
+      exit(EXIT_FAILURE);
+    }
+    const int value = 100 * *a + 10 * *b + *c;
+    if (value > 255) {
+      fprintf(stderr, "character out-of-bounds\n");
+      exit(EXIT_FAILURE);
+    }
+    return value;
+  } else if (ch == 'x') {
+    const std::optional<int> a = chToHex(fgetc(fin));
+    const std::optional<int> b = chToHex(fgetc(fin));
+    if (!a || !b) {
+      fprintf(stderr, "expected hexadecimal\n");
+      exit(EXIT_FAILURE);
+    }
+    const int value = 16 * *a + *b;
+    if (value > 255) {
+      fprintf(stderr, "character out-of-bounds\n");
+      exit(EXIT_FAILURE);
+    }
+    return value;
+  } else if (ch == 'o') {
+    const std::optional<int> a = chToOct(fgetc(fin));
+    const std::optional<int> b = chToOct(fgetc(fin));
+    const std::optional<int> c = chToOct(fgetc(fin));
+    if (!a || !b || !c) {
+      fprintf(stderr, "expected octal\n");
+      exit(EXIT_FAILURE);
+    }
+    const int value = 64 * *a + 8 * *b + *c;
+    if (value > 255) {
+      fprintf(stderr, "character out-of-bounds\n");
+      exit(EXIT_FAILURE);
+    }
+    return value;
+  } else {
     return ch;
-    break;
   }
 }
 
@@ -43,7 +105,7 @@ int lexChar(std::FILE *const fin) {
   const int ch = fgetc(fin);
 
   if (ch == EOF) {
-    fprintf(stderr, "unexpected EOF");
+    fprintf(stderr, "unexpected EOF\n");
     exit(EXIT_FAILURE);
   }
 
@@ -56,7 +118,7 @@ int lexChar(std::FILE *const fin) {
   }
 
   if (fgetc(fin) != '\'') {
-    fprintf(stderr, "expected \'");
+    fprintf(stderr, "expected single-quote\n");
     exit(EXIT_FAILURE);
   }
 
@@ -80,9 +142,10 @@ std::optional<std::int64_t> lexInt64(const std::string &ident) {
   }
 
   while (i < ident.size()) {
-    if (std::isdigit(ident[i])) {
+    const std::optional<int> dec = chToDec(ident[i]);
+    if (dec) {
       result *= 10;
-      result += ident[i] - '0';
+      result += *dec;
     } else {
       return {};
     }
@@ -121,11 +184,11 @@ std::optional<Lexeme> lexString(const std::string &word) {
       {"while", Lexeme::Type::WHILE},   {"repeat", Lexeme::Type::REPEAT},
       {"again", Lexeme::Type::AGAIN},
   };
-  if (word.empty()) {
-    return {};
-  } else if (const auto &find = operatorDict.find(word);
-             find != operatorDict.end()) {
+  const auto &find = operatorDict.find(word);
+  if (find != operatorDict.end()) {
     return Lexeme{find->second, {}};
+  } else if (word.empty()) {
+    return {};
   } else {
     const std::optional<std::int64_t> num = lexInt64(word);
     if (num) {
