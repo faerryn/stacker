@@ -80,28 +80,22 @@ std::optional<Lexeme> lexWord(const std::string &word) {
   const std::map<std::string, Lexeme::Type> operatorDict{
       {"+", Lexeme::Type::ADD},         {"-", Lexeme::Type::SUB},
       {"*", Lexeme::Type::MUL},         {"/", Lexeme::Type::DIV},
-      {"rem", Lexeme::Type::REM},       {"REM", Lexeme::Type::REM},
-      {"mod", Lexeme::Type::MOD},       {"MOD", Lexeme::Type::MOD},
+      {"rem", Lexeme::Type::REM},       {"mod", Lexeme::Type::MOD},
 
       {">", Lexeme::Type::GT},          {"<", Lexeme::Type::LT},
       {"=", Lexeme::Type::EQ},          {"<>", Lexeme::Type::NEQ},
 
-      {"emit", Lexeme::Type::EMIT},     {"EMIT", Lexeme::Type::EMIT},
-      {".", Lexeme::Type::DOT},
+      {"emit", Lexeme::Type::EMIT},     {".", Lexeme::Type::DOT},
 
-      {"dup", Lexeme::Type::DUP},       {"DUP", Lexeme::Type::DUP},
-      {"drop", Lexeme::Type::DROP},     {"DROP", Lexeme::Type::DROP},
-      {"switch", Lexeme::Type::SWITCH}, {"SWITCH", Lexeme::Type::SWITCH},
-      {"over", Lexeme::Type::OVER},     {"OVER", Lexeme::Type::OVER},
-      {"rot", Lexeme::Type::ROT},       {"ROT", Lexeme::Type::ROT},
+      {"dup", Lexeme::Type::DUP},       {"drop", Lexeme::Type::DROP},
+      {"switch", Lexeme::Type::SWITCH}, {"over", Lexeme::Type::OVER},
+      {"rot", Lexeme::Type::ROT},
 
       {":", Lexeme::Type::COL},         {";", Lexeme::Type::SEMICOL},
 
-      {"if", Lexeme::Type::IF},         {"IF", Lexeme::Type::IF},
-      {"then", Lexeme::Type::THEN},     {"THEN", Lexeme::Type::THEN},
+      {"if", Lexeme::Type::IF},         {"then", Lexeme::Type::THEN},
 
-      {"begin", Lexeme::Type::BEGIN},   {"BEGIN", Lexeme::Type::BEGIN},
-      {"until", Lexeme::Type::UNTIL},   {"UNTIL", Lexeme::Type::UNTIL},
+      {"begin", Lexeme::Type::BEGIN},   {"until", Lexeme::Type::UNTIL},
   };
   if (word.empty()) {
     return {};
@@ -230,6 +224,8 @@ std::optional<Expression> parseDefBody(LexemeSource &source,
                                        std::vector<Lexeme> &body);
 std::optional<Expression> parseIf(LexemeSource &source,
                                   std::vector<Lexeme> &body);
+std::optional<Expression> parseBegin(LexemeSource &source,
+                                     std::vector<Lexeme> &body);
 std::vector<Expression> parseAll(LexemeSource &source);
 
 std::vector<Expression> parseAll(LexemeSource &source) {
@@ -239,6 +235,29 @@ std::vector<Expression> parseAll(LexemeSource &source) {
     bodyExprs.push_back(*expr);
   }
   return bodyExprs;
+}
+
+std::optional<Expression> parseBegin(LexemeSource &source,
+                                     std::vector<Lexeme> &body) {
+  std::optional<Lexeme> lexeme = source.get();
+  if (!lexeme) {
+    fprintf(stderr, "unexpected EOF\n");
+    exit(EXIT_FAILURE);
+  }
+
+  switch (lexeme->type) {
+  case Lexeme::Type::UNTIL: {
+    LexemeSource bodySource{body.begin(), body.end()};
+    return Expression{Expression::Type::BEGIN, parseAll(bodySource)};
+  } break;
+  default: {
+    body.push_back(*lexeme);
+    return parseBegin(source, body);
+  } break;
+  }
+
+  fprintf(stderr, "unexpected\n");
+  exit(EXIT_FAILURE);
 }
 
 std::optional<Expression> parseIf(LexemeSource &source,
@@ -392,9 +411,12 @@ std::optional<Expression> parse(LexemeSource &source) {
     fprintf(stderr, "unexpected THEN\n");
     exit(EXIT_FAILURE);
     break;
-  case Lexeme::Type::BEGIN:
+  case Lexeme::Type::BEGIN: {
+    std::vector<Lexeme> lexemes;
+    return parseBegin(source, lexemes);
+  } break;
   case Lexeme::Type::UNTIL:
-    fprintf(stderr, "TODO\n");
+    fprintf(stderr, "unexpected UNTIL\n");
     exit(EXIT_FAILURE);
     break;
   }
@@ -506,8 +528,7 @@ struct Engine {
       defDict[def.word] = def.body;
     } break;
     case Expression::Type::IF: {
-      const bool cond = bool(pop());
-      if (cond) {
+      if (bool(pop())) {
         const std::vector<Expression> &body =
             std::get<std::vector<Expression>>(expression.data);
         for (const Expression &expr : body) {
@@ -516,8 +537,13 @@ struct Engine {
       }
     } break;
     case Expression::Type::BEGIN:
-      fprintf(stderr, "TODO\n");
-      exit(EXIT_FAILURE);
+      do {
+        const std::vector<Expression> &body =
+            std::get<std::vector<Expression>>(expression.data);
+        for (const Expression &expr : body) {
+          eval(expr);
+        }
+      } while (bool(pop()));
       break;
     }
   }

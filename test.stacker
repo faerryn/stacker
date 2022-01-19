@@ -1,5 +1,6 @@
 : cr 10 emit ;
-: CR cr ;
 : fib dup 1 < if dup 1 switch - fib switch 2 switch - fib + then ;
 
-10 fib . CR
+10 fib . cr
+
+10 begin dup . 1 switch - dup until cr
