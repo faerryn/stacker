@@ -1,7 +1,5 @@
 : fib dup 1 < if dup 1 swap - fib swap 2 swap - fib + then ;
 
-: tuck swap over ;
-: -rot rot rot ;
 : fib2 0 1 rot begin dup 0 < while -rot tuck + rot 1 swap - repeat drop drop ;
 
 : cr 10 emit ;
