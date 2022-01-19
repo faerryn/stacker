@@ -217,8 +217,8 @@ std::optional<Expression> parse(LexemeSource &source) {
   case Lexeme::Type::DROP:
     return Expression{Expression::Type::DROP, {}};
     break;
-  case Lexeme::Type::SWITCH:
-    return Expression{Expression::Type::SWITCH, {}};
+  case Lexeme::Type::SWAP:
+    return Expression{Expression::Type::SWAP, {}};
     break;
   case Lexeme::Type::OVER:
     return Expression{Expression::Type::OVER, {}};

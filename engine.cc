@@ -71,7 +71,7 @@ void Engine::eval(const Expression &expression) {
   case Expression::Type::DROP:
     pop();
     break;
-  case Expression::Type::SWITCH: {
+  case Expression::Type::SWAP: {
     const std::int64_t b = pop();
     const std::int64_t a = pop();
     push(b);

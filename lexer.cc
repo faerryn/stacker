@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <map>
 
-std::optional<std::int64_t> parseInt(const std::string &ident) {
+std::optional<std::int64_t> lexInt(const std::string &ident) {
   if (ident.empty()) {
     return {};
   }
@@ -35,25 +35,25 @@ std::optional<std::int64_t> parseInt(const std::string &ident) {
 
 std::optional<Lexeme> lexWord(const std::string &word) {
   const std::map<std::string, Lexeme::Type> operatorDict{
-      {"+", Lexeme::Type::ADD},         {"-", Lexeme::Type::SUB},
-      {"*", Lexeme::Type::MUL},         {"/", Lexeme::Type::DIV},
-      {"rem", Lexeme::Type::REM},       {"mod", Lexeme::Type::MOD},
+      {"+", Lexeme::Type::ADD},       {"-", Lexeme::Type::SUB},
+      {"*", Lexeme::Type::MUL},       {"/", Lexeme::Type::DIV},
+      {"rem", Lexeme::Type::REM},     {"mod", Lexeme::Type::MOD},
 
-      {">", Lexeme::Type::GT},          {"<", Lexeme::Type::LT},
-      {"=", Lexeme::Type::EQ},          {"<>", Lexeme::Type::NEQ},
+      {">", Lexeme::Type::GT},        {"<", Lexeme::Type::LT},
+      {"=", Lexeme::Type::EQ},        {"<>", Lexeme::Type::NEQ},
 
-      {"emit", Lexeme::Type::EMIT},     {".", Lexeme::Type::DOT},
+      {"emit", Lexeme::Type::EMIT},   {".", Lexeme::Type::DOT},
 
-      {"dup", Lexeme::Type::DUP},       {"drop", Lexeme::Type::DROP},
-      {"switch", Lexeme::Type::SWITCH}, {"over", Lexeme::Type::OVER},
+      {"dup", Lexeme::Type::DUP},     {"drop", Lexeme::Type::DROP},
+      {"swap", Lexeme::Type::SWAP},   {"over", Lexeme::Type::OVER},
       {"rot", Lexeme::Type::ROT},
 
-      {":", Lexeme::Type::COL},         {";", Lexeme::Type::SEMICOL},
+      {":", Lexeme::Type::COL},       {";", Lexeme::Type::SEMICOL},
 
-      {"if", Lexeme::Type::IF},         {"then", Lexeme::Type::THEN},
+      {"if", Lexeme::Type::IF},       {"then", Lexeme::Type::THEN},
 
-      {"begin", Lexeme::Type::BEGIN},   {"until", Lexeme::Type::UNTIL},
-      {"while", Lexeme::Type::WHILE},   {"repeat", Lexeme::Type::REPEAT},
+      {"begin", Lexeme::Type::BEGIN}, {"until", Lexeme::Type::UNTIL},
+      {"while", Lexeme::Type::WHILE}, {"repeat", Lexeme::Type::REPEAT},
   };
   if (word.empty()) {
     return {};
@@ -61,7 +61,7 @@ std::optional<Lexeme> lexWord(const std::string &word) {
     return Lexeme{find->second, {}};
   } else {
     std::optional<std::int64_t> num;
-    if ((num = parseInt(word))) {
+    if ((num = lexInt(word))) {
       return Lexeme{Lexeme::Type::NUM, *num};
     } else {
       return Lexeme{Lexeme::Type::WORD, word};

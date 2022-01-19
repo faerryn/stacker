@@ -2,4 +2,42 @@
 #+STARTUP: indent
 
 * STACKER
-A buggy, non-conformal subset of [[https://www.forth.com/][FORTH,]] is a stack-based language.
+STACKER is a buggy, non-conformal interpreter for a subset of [[https://www.forth.com/][FORTH]], a
+stack-based language.  STACKER diverges from FORTH standard in a
+number of ways: STACKER is case-sensitive, it does not support
+FOTH-style strings, and it does not support dictionary operations.
+STACKER also has divergent operator behaviors, documented below.
+
+Currently, STACKER implements the following operators:
+- [-] Arithmetic Operators
+  - [-] `+`
+  - [X] `-` (non-conformal: reversed order)
+  - [X] `*`
+  - [X] `/` (non-conformal: reversed order)
+  - [X] `rem` (non-conformal: reversed order remainder)
+  - [ ] `/rem`
+  - [X] `mod` (non-conformal: reversed order residue class)
+  - [ ] `/mod`
+- [X] Comparison Operators
+  - [X] `>` (non-conformal: reversed order)
+  - [X] `<` (non-conformal: reversed order)
+  - [X] '='
+  - [X] '<>'
+- [ ] Logical Operations
+  - [ ] `and`
+  - [ ] `or`
+  - [ ] `invert`
+- [X] Stack Operations
+  - [X] `dup`
+  - [X] `drop`
+  - [X] `swap`
+  - [X] `over`
+  - [X] `rot`
+- [-] Conditionals
+  - [X] if/then
+  - [ ] if/else/then
+- [-] Loops
+  - [X] begin/until
+  - [ ] begin/again
+  - [X] begin/while/repeat
+

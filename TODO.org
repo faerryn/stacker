@@ -1,0 +1,7 @@
+#+TITLE: TODO
+#+STARTUP: indent
+
+* TODO FORTH-style boolean values (TRUE = -1, FALSE = 0)
+* TODO Standard Library with things like `2dup`, `/mod`, etc...
+* TODO Determine dictionary overwriting behavior (maybe OCaml-style closures?)
+* TODO Figure out strings

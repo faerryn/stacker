@@ -55,7 +55,7 @@ struct Expression {
 
     DUP,
     DROP,
-    SWITCH,
+    SWAP,
     OVER,
     ROT,
 
