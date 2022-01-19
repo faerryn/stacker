@@ -36,8 +36,8 @@ Currently, STACKER implements the following operators:
 - [-] Conditionals
   - [X] if/then
   - [ ] if/else/then
-- [-] Loops
+- [X] Loops
   - [X] begin/until
-  - [ ] begin/again
+  - [X] begin/again
   - [X] begin/while/repeat
 

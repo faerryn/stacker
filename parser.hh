@@ -63,6 +63,7 @@ struct Expression {
     IF,
     BEGIN,
     BEGIN_WHILE,
+    BEGIN_AGAIN,
   } type;
   using Body = std::vector<Expression>;
   struct Def {

@@ -80,6 +80,10 @@ std::optional<Expression> parseBegin(LexemeSource &source,
     std::vector<Lexeme> whileBody;
     return parseBeginWhile(source, parseAll(condSource), whileBody);
   } break;
+  case Lexeme::Type::AGAIN: {
+    LexemeSource bodySource{body.begin(), body.end()};
+    return Expression{Expression::Type::BEGIN_AGAIN, parseAll(bodySource)};
+  } break;
   default:
     body.push_back(*lexeme);
     return parseBegin(source, body);
@@ -255,6 +259,10 @@ std::optional<Expression> parse(LexemeSource &source) {
     break;
   case Lexeme::Type::REPEAT:
     fprintf(stderr, "unexpected REPEAT\n");
+    exit(EXIT_FAILURE);
+    break;
+  case Lexeme::Type::AGAIN:
+    fprintf(stderr, "unexpected AGAIN\n");
     exit(EXIT_FAILURE);
     break;
   }

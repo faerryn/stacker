@@ -130,5 +130,11 @@ void Engine::eval(const Expression &expression) {
       evalBody(beginWhile.cond);
     }
   } break;
+  case Expression::Type::BEGIN_AGAIN: {
+    const Expression::Body &body = std::get<Expression::Body>(expression.data);
+    while (true) {
+      evalBody(body);
+    }
+  } break;
   }
 }

@@ -54,6 +54,7 @@ std::optional<Lexeme> lexWord(const std::string &word) {
 
       {"begin", Lexeme::Type::BEGIN}, {"until", Lexeme::Type::UNTIL},
       {"while", Lexeme::Type::WHILE}, {"repeat", Lexeme::Type::REPEAT},
+      {"again", Lexeme::Type::AGAIN},
   };
   if (word.empty()) {
     return {};
