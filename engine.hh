@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include <map>
-#include <deque>
+#include <vector>
 #include <string>
 
 #include "parser.hh"
@@ -12,7 +12,7 @@ class Engine {
 private:
   class Stack {
   private:
-    std::deque<std::int64_t> data;
+    std::vector<std::int64_t> data;
 
   public:
     void push(std::int64_t number);
