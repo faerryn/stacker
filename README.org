@@ -10,7 +10,7 @@ STACKER also has divergent behaviors, documented below.
 Currently, STACKER implements the following:
 - Data
   - int64
-  - char8 ([[https://ocaml.org/manual/lex.html#escape-sequence][OCAML-style]])
+  - char8 (single-quoted with basic escape sequences)
 - Arithmetic Operators
   - +
   - -

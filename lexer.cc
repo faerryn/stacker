@@ -4,9 +4,8 @@
 #include <cstdlib>
 #include <optional>
 
-std::optional<std::int64_t> chToDec(int ch);
-std::optional<std::int64_t> chToHex(int ch);
-std::optional<std::int64_t> chToOct(int ch);
+bool isDec(int ch);
+std::int64_t toDec(int ch);
 bool isSpace(int ch);
 
 Lexeme lexNum(std::istream &is, std::string &word, std::int64_t sign,
@@ -23,32 +22,11 @@ bool isSpace(int ch) {
   return ch == EOF || ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t';
 }
 
-std::optional<std::int64_t> chToDec(int ch) {
-  if ('0' <= ch && ch <= '9') {
-    return ch - '0';
-  } else {
-    return {};
-  }
+bool isDec(int ch) {
+  return '0' <= ch && ch <= '9';
 }
-
-std::optional<std::int64_t> chToHex(int ch) {
-  if ('0' <= ch && ch <= '9') {
-    return ch - '0';
-  } else if ('A' <= ch && ch <= 'F') {
-    return 10 + ch - 'A';
-  } else if ('a' <= ch && ch <= 'f') {
-    return 10 + ch - 'a';
-  } else {
-    return {};
-  }
-}
-
-std::optional<std::int64_t> chToOct(int ch) {
-  if ('0' <= ch && ch <= '7') {
-    return ch - '0';
-  } else {
-    return {};
-  }
+std::int64_t toDec(int ch) {
+  return ch - '0';
 }
 
 char lexEscape(std::istream &is) {
@@ -67,46 +45,6 @@ char lexEscape(std::istream &is) {
     return '\t';
   } else if (ch == '\b') {
     return '\b';
-  } else if (const std::optional<std::int64_t> &a = chToDec(ch); a) {
-    const std::optional<std::int64_t> b = chToDec(is.get());
-    const std::optional<std::int64_t> c = chToDec(is.get());
-    if (!b || !c) {
-      std::cerr << "expected decimal\n";
-      exit(EXIT_FAILURE);
-    }
-    const int value = 100 * *a + 10 * *b + *c;
-    if (value > 255) {
-      std::cerr << "character out-of-bounds\n";
-      exit(EXIT_FAILURE);
-    }
-    return value;
-  } else if (ch == 'x') {
-    const std::optional<std::int64_t> a = chToHex(is.get());
-    const std::optional<std::int64_t> b = chToHex(is.get());
-    if (!a || !b) {
-      std::cerr << "expected hexadecimal\n";
-      exit(EXIT_FAILURE);
-    }
-    const int value = 16 * *a + *b;
-    if (value > 255) {
-      std::cerr << "character out-of-bounds\n";
-      exit(EXIT_FAILURE);
-    }
-    return value;
-  } else if (ch == 'o') {
-    const std::optional<std::int64_t> a = chToOct(is.get());
-    const std::optional<std::int64_t> b = chToOct(is.get());
-    const std::optional<std::int64_t> c = chToOct(is.get());
-    if (!a || !b || !c) {
-      std::cerr << "expected octal\n";
-      exit(EXIT_FAILURE);
-    }
-    const int value = 64 * *a + 8 * *b + *c;
-    if (value > 255) {
-      std::cerr << "character out-of-bounds\n";
-      exit(EXIT_FAILURE);
-    }
-    return value;
   } else {
     return ch;
   }
@@ -146,10 +84,9 @@ Lexeme lexNum(std::istream &is, std::string &word, std::int64_t sign,
 
   word.push_back(ch);
 
-  std::optional<std::int64_t> dec = chToDec(ch);
-  if (dec) {
+  if (isDec(ch)) {
     mag *= 10;
-    mag += *dec;
+    mag += toDec(ch);
     return lexNum(is, word, sign, mag);
   } else {
     return lexWord(is, word);
@@ -165,9 +102,8 @@ Lexeme lexSign(std::istream &is, std::string &word, std::int64_t sign) {
 
   word.push_back(ch);
 
-  std::optional<std::int64_t> dec = chToDec(ch);
-  if (dec) {
-    return lexNum(is, word, sign, *dec);
+  if (isDec(ch)) {
+    return lexNum(is, word, sign, toDec(ch));
   } else {
     return lexWord(is, word);
   }
@@ -288,9 +224,8 @@ std::optional<Lexeme> lex(std::istream &is) {
   } else {
     std::string word;
     word.push_back(ch);
-    std::optional<std::int64_t> dec = chToDec(ch);
-    if (dec) {
-      return lexNum(is, word, +1, *dec);
+    if (isDec(ch)) {
+      return lexNum(is, word, +1, toDec(ch));
     } else if (ch == '+') {
       return lexSign(is, word, +1);
     } else if (ch == '-') {
