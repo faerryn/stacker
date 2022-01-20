@@ -5,6 +5,9 @@
 #include <cstring>
 #include <iostream>
 
+std::int64_t boolToInt64(bool b) { return b ? ~0 : 0; }
+bool int64ToBool(std::int64_t i) { return i != 0; }
+
 void Engine::Stack::push(std::int64_t number) { data.push_back(number); }
 
 std::int64_t Engine::Stack::pop() {
@@ -26,13 +29,14 @@ void Engine::Stack::debug() {
   }
 }
 
-void Engine::evalBody(const Expression::Body &body) {
+void Engine::evalBody(const std::vector<Expression> &body) {
   for (const Expression &expr : body) {
-    eval(expr);
+    evalExpression(expr);
   }
 }
 
-void Engine::define(const std::string &word, const Expression::Body &def) {
+void Engine::define(const std::string &word,
+                    const std::vector<Expression> &def) {
   if (dictionary.contains(word)) {
     std::cerr << __FILE__ << ":" << __LINE__ << ": word already defined\n";
     exit(EXIT_FAILURE);
@@ -40,11 +44,14 @@ void Engine::define(const std::string &word, const Expression::Body &def) {
   dictionary[word] = def;
 }
 
-std::int64_t boolToInt64(bool b) { return b ? ~0 : 0; }
+void Engine::eval(std::istream &is) {
+  const std::optional<Expression> &expression = parse(is);
+  if (expression) {
+    evalExpression(*expression);
+  }
+}
 
-bool int64ToBool(std::int64_t i) { return i != 0; }
-
-void Engine::eval(const Expression &expression) {
+void Engine::evalExpression(const Expression &expression) {
   switch (expression.type) {
 
   case Expression::Type::Number:
@@ -56,10 +63,8 @@ void Engine::eval(const Expression &expression) {
     if (find != dictionary.end()) {
       Stack returnStackMove = std::move(returnStack);
       returnStack = Stack();
-      const Expression::Body &body = find->second;
-      for (const Expression &expr : body) {
-        eval(expr);
-      }
+      const std::vector<Expression> &body = find->second;
+      evalBody(body);
       if (!returnStack.empty()) {
         std::cerr << __FILE__ << ":" << __LINE__
                   << ": expected empty return stack\n";
@@ -193,7 +198,8 @@ void Engine::eval(const Expression &expression) {
   } break;
 
   case Expression::Type::IfThen: {
-    const Expression::Body &body = std::get<Expression::Body>(expression.data);
+    const std::vector<Expression> &body =
+        std::get<std::vector<Expression>>(expression.data);
     if (int64ToBool(parameterStack.pop())) {
       evalBody(body);
     }
@@ -209,7 +215,8 @@ void Engine::eval(const Expression &expression) {
   } break;
 
   case Expression::Type::BeginUntil: {
-    const Expression::Body &body = std::get<Expression::Body>(expression.data);
+    const std::vector<Expression> &body =
+        std::get<std::vector<Expression>>(expression.data);
     do {
       evalBody(body);
     } while (!int64ToBool(parameterStack.pop()));
@@ -224,7 +231,8 @@ void Engine::eval(const Expression &expression) {
     }
   } break;
   case Expression::Type::BeginAgain: {
-    const Expression::Body &body = std::get<Expression::Body>(expression.data);
+    const std::vector<Expression> &body =
+        std::get<std::vector<Expression>>(expression.data);
     while (true) {
       evalBody(body);
     }

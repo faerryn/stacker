@@ -7,19 +7,21 @@
 
 Expression parseDefineWord(std::istream &source);
 Expression parseDefineBody(std::istream &source, const std::string &word,
-                        std::vector<Expression> &body);
+                           std::vector<Expression> &body);
 Expression parseIf(std::istream &source, std::vector<Expression> &body);
-Expression parseIfElse(std::istream &source, const Expression::Body &ifBody,
+Expression parseIfElse(std::istream &source,
+                       const std::vector<Expression> &ifBody,
                        std::vector<Expression> &body);
 Expression parseBegin(std::istream &source, std::vector<Expression> &body);
-Expression parseBeginWhile(std::istream &source, const Expression::Body &cond,
+Expression parseBeginWhile(std::istream &source,
+                           const std::vector<Expression> &cond,
                            std::vector<Expression> &body);
 Expression parseVariable(std::istream &source);
 std::vector<Expression> parseAll(std::istream &source);
 Expression parseLexeme(const Lexeme &lexeme, std::istream &source);
 
 Expression parseNoEOF(std::istream &source) {
-  std::optional<Expression> next  = parse(source);
+  std::optional<Expression> next = parse(source);
   if (next) {
     return *next;
 
@@ -29,8 +31,8 @@ Expression parseNoEOF(std::istream &source) {
   }
 }
 
-Expression::Body parseAll(std::istream &source) {
-  Expression::Body body;
+std::vector<Expression> parseAll(std::istream &source) {
+  std::vector<Expression> body;
   std::optional<Expression> expr;
   while ((expr = parse(source))) {
     body.push_back(*expr);
@@ -38,9 +40,10 @@ Expression::Body parseAll(std::istream &source) {
   return body;
 }
 
-Expression parseBeginWhile(std::istream &source, const Expression::Body &cond,
+Expression parseBeginWhile(std::istream &source,
+                           const std::vector<Expression> &cond,
                            std::vector<Expression> &body) {
-  Lexeme lexeme = lexNoEOF(source);
+  const Lexeme lexeme = lexNoEOF(source);
 
   switch (lexeme.type) {
   case Lexeme::Type::Repeat: {
@@ -58,9 +61,8 @@ Expression parseBeginWhile(std::istream &source, const Expression::Body &cond,
   exit(EXIT_FAILURE);
 }
 
-
 Expression parseBegin(std::istream &source, std::vector<Expression> &body) {
-  Lexeme lexeme = lexNoEOF(source);
+  const Lexeme lexeme = lexNoEOF(source);
 
   switch (lexeme.type) {
   case Lexeme::Type::Until: {
@@ -83,9 +85,10 @@ Expression parseBegin(std::istream &source, std::vector<Expression> &body) {
   exit(EXIT_FAILURE);
 }
 
-Expression parseIfElse(std::istream &source, const Expression::Body &ifBody,
+Expression parseIfElse(std::istream &source,
+                       const std::vector<Expression> &ifBody,
                        std::vector<Expression> &body) {
-  Lexeme lexeme = lexNoEOF(source);
+  const Lexeme lexeme = lexNoEOF(source);
 
   switch (lexeme.type) {
   case Lexeme::Type::Then: {
@@ -103,7 +106,7 @@ Expression parseIfElse(std::istream &source, const Expression::Body &ifBody,
 }
 
 Expression parseIf(std::istream &source, std::vector<Expression> &body) {
-  Lexeme lexeme = lexNoEOF(source);
+  const Lexeme lexeme = lexNoEOF(source);
 
   switch (lexeme.type) {
   case Lexeme::Type::Then: {
@@ -125,12 +128,11 @@ Expression parseIf(std::istream &source, std::vector<Expression> &body) {
 
 Expression parseDefineBody(std::istream &source, const std::string &word,
                            std::vector<Expression> &body) {
-  Lexeme lexeme = lexNoEOF(source);
+  const Lexeme lexeme = lexNoEOF(source);
 
   switch (lexeme.type) {
   case Lexeme::Type::Semi: {
-    return Expression{Expression::Type::Define,
-                      Expression::Def{word, body}};
+    return Expression{Expression::Type::Define, Expression::Def{word, body}};
   } break;
   case Lexeme::Type::Col:
     std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected col\n";
@@ -147,7 +149,7 @@ Expression parseDefineBody(std::istream &source, const std::string &word,
 }
 
 Expression parseDefineWord(std::istream &source) {
-  Lexeme lexeme = lexNoEOF(source);
+  const Lexeme lexeme = lexNoEOF(source);
 
   switch (lexeme.type) {
   case Lexeme::Type::Word: {

@@ -62,21 +62,20 @@ struct Expression {
     DotS,
     Bye,
   } type;
-  using Body = std::vector<Expression>;
   struct Def {
     std::string word;
-    Body body;
+    std::vector<Expression> body;
   };
   struct BeginWhile {
-    Body condBody;
-    Body whileBody;
+    std::vector<Expression> condBody;
+    std::vector<Expression> whileBody;
   };
   struct IfElse {
-    Body ifBody;
-    Body elseBody;
+    std::vector<Expression> ifBody;
+    std::vector<Expression> elseBody;
   };
-  std::variant<std::monostate, std::int64_t, std::string, Body, Def, BeginWhile,
-               IfElse>
+  std::variant<std::monostate, std::int64_t, std::string,
+               std::vector<Expression>, Def, BeginWhile, IfElse>
       data;
 };
 

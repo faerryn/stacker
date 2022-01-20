@@ -23,16 +23,17 @@ private:
   };
   Stack parameterStack;
   Stack returnStack;
-  std::map<std::string, Expression::Body> dictionary;
+  std::map<std::string, std::vector<Expression>> dictionary;
   std::set<std::uint8_t *> allocs;
 
-  void evalBody(const Expression::Body &body);
-  void define(const std::string &word, const Expression::Body &def);
+  void define(const std::string &word, const std::vector<Expression> &def);
+  void evalBody(const std::vector<Expression> &body);
+  void evalExpression(const Expression &expression);
 
 public:
   ~Engine();
 
-  void eval(const Expression &expression);
+  void eval(std::istream &is);
 };
 
 #endif // ENGINE_HH

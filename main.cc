@@ -10,9 +10,8 @@
 Engine engine;
 
 void evalLoop(std::istream &is) {
-  std::optional<Expression> expr;
-  while ((expr = parse(is))) {
-    engine.eval(*expr);
+  while (!is.eof()) {
+    engine.eval(is);
   }
 }
 
