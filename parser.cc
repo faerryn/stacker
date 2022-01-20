@@ -1,45 +1,35 @@
 #include "parser.hh"
+#include "lexer.hh"
 
 #include <cstdlib>
+#include <iostream>
 #include <vector>
 
-Expression parseDefWord(LexemeSource &source);
-Expression parseDefBody(LexemeSource &source, const std::string &word,
-                        std::vector<Lexeme> &body);
-Expression parseIf(LexemeSource &source, std::vector<Lexeme> &body);
-Expression parseIfElse(LexemeSource &source, const Expression::Body &ifBody,
-                       std::vector<Lexeme> &body);
-Expression parseBegin(LexemeSource &source, std::vector<Lexeme> &body);
-Expression parseBeginWhile(LexemeSource &source, const Expression::Body &cond,
-                           std::vector<Lexeme> &body);
-Expression parseVariable(LexemeSource &source);
-std::vector<Expression> parseAll(LexemeSource &source);
+Expression parseDefineWord(std::istream &source);
+Expression parseDefineBody(std::istream &source, const std::string &word,
+                        std::vector<Expression> &body);
+Expression parseIf(std::istream &source, std::vector<Expression> &body);
+Expression parseIfElse(std::istream &source, const Expression::Body &ifBody,
+                       std::vector<Expression> &body);
+Expression parseBegin(std::istream &source, std::vector<Expression> &body);
+Expression parseBeginWhile(std::istream &source, const Expression::Body &cond,
+                           std::vector<Expression> &body);
+Expression parseVariable(std::istream &source);
+std::vector<Expression> parseAll(std::istream &source);
+Expression parseLexeme(const Lexeme &lexeme, std::istream &source);
 
-LexemeSource::LexemeSource(std::istream *is) : type(Type::Stream), data(is) {}
-LexemeSource::LexemeSource(const std::vector<Lexeme> &lexemes)
-    : type(Type::Collection), data(Collection{lexemes, 0}) {}
+Expression parseNoEOF(std::istream &source) {
+  std::optional<Expression> next  = parse(source);
+  if (next) {
+    return *next;
 
-std::optional<Lexeme> LexemeSource::get() {
-  switch (type) {
-  case Type::Stream:
-    return lex(*std::get<std::istream *>(data));
-    break;
-  case Type::Collection: {
-    Collection &collection = std::get<Collection>(data);
-    if (collection.index < collection.lexemes.size()) {
-      ++collection.index;
-      return collection.lexemes[collection.index - 1];
-    } else {
-      return {};
-    }
-  } break;
+  } else {
+    std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected EOF\n";
+    exit(EXIT_FAILURE);
   }
-
-  std::cerr << __FILE__ << ":" << __LINE__ << ": unrechable\n";
-  exit(EXIT_FAILURE);
 }
 
-Expression::Body parseAll(LexemeSource &source) {
+Expression::Body parseAll(std::istream &source) {
   Expression::Body body;
   std::optional<Expression> expr;
   while ((expr = parse(source))) {
@@ -48,23 +38,19 @@ Expression::Body parseAll(LexemeSource &source) {
   return body;
 }
 
-Expression parseBeginWhile(LexemeSource &source, const Expression::Body &cond,
-                           std::vector<Lexeme> &body) {
-  std::optional<Lexeme> lexeme = source.get();
-  if (!lexeme) {
-    std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected EOF\n";
-    exit(EXIT_FAILURE);
-  }
+Expression parseBeginWhile(std::istream &source, const Expression::Body &cond,
+                           std::vector<Expression> &body) {
+  Lexeme lexeme = lexNoEOF(source);
 
-  switch (lexeme->type) {
+  switch (lexeme.type) {
   case Lexeme::Type::Repeat: {
-    LexemeSource bodySource{body};
     return Expression{Expression::Type::BeginWhileRepeat,
-                      Expression::BeginWhile{cond, parseAll(bodySource)}};
+                      Expression::BeginWhile{cond, body}};
   } break;
   default: {
-    body.push_back(*lexeme);
+    body.push_back(parseLexeme(lexeme, source));
     return parseBeginWhile(source, cond, body);
+
   } break;
   }
 
@@ -72,29 +58,23 @@ Expression parseBeginWhile(LexemeSource &source, const Expression::Body &cond,
   exit(EXIT_FAILURE);
 }
 
-Expression parseBegin(LexemeSource &source, std::vector<Lexeme> &body) {
-  std::optional<Lexeme> lexeme = source.get();
-  if (!lexeme) {
-    std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected EOF\n";
-    exit(EXIT_FAILURE);
-  }
 
-  switch (lexeme->type) {
+Expression parseBegin(std::istream &source, std::vector<Expression> &body) {
+  Lexeme lexeme = lexNoEOF(source);
+
+  switch (lexeme.type) {
   case Lexeme::Type::Until: {
-    LexemeSource bodySource{body};
-    return Expression{Expression::Type::BeginUntil, parseAll(bodySource)};
+    return Expression{Expression::Type::BeginUntil, body};
   } break;
   case Lexeme::Type::While: {
-    LexemeSource condSource{body};
-    std::vector<Lexeme> whileBody;
-    return parseBeginWhile(source, parseAll(condSource), whileBody);
+    std::vector<Expression> whileBody;
+    return parseBeginWhile(source, body, whileBody);
   } break;
   case Lexeme::Type::Again: {
-    LexemeSource bodySource{body};
-    return Expression{Expression::Type::BeginAgain, parseAll(bodySource)};
+    return Expression{Expression::Type::BeginAgain, body};
   } break;
   default:
-    body.push_back(*lexeme);
+    body.push_back(parseLexeme(lexeme, source));
     return parseBegin(source, body);
     break;
   }
@@ -103,22 +83,17 @@ Expression parseBegin(LexemeSource &source, std::vector<Lexeme> &body) {
   exit(EXIT_FAILURE);
 }
 
-Expression parseIfElse(LexemeSource &source, const Expression::Body &ifBody,
-                       std::vector<Lexeme> &body) {
-  std::optional<Lexeme> lexeme = source.get();
-  if (!lexeme) {
-    std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected EOF\n";
-    exit(EXIT_FAILURE);
-  }
+Expression parseIfElse(std::istream &source, const Expression::Body &ifBody,
+                       std::vector<Expression> &body) {
+  Lexeme lexeme = lexNoEOF(source);
 
-  switch (lexeme->type) {
+  switch (lexeme.type) {
   case Lexeme::Type::Then: {
-    LexemeSource bodySource{body};
     return Expression{Expression::Type::IfElseThen,
-                      Expression::IfElse{ifBody, parseAll(bodySource)}};
+                      Expression::IfElse{ifBody, body}};
   } break;
   default: {
-    body.push_back(*lexeme);
+    body.push_back(parseLexeme(lexeme, source));
     return parseIfElse(source, ifBody, body);
   } break;
   }
@@ -127,25 +102,19 @@ Expression parseIfElse(LexemeSource &source, const Expression::Body &ifBody,
   exit(EXIT_FAILURE);
 }
 
-Expression parseIf(LexemeSource &source, std::vector<Lexeme> &body) {
-  std::optional<Lexeme> lexeme = source.get();
-  if (!lexeme) {
-    std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected EOF\n";
-    exit(EXIT_FAILURE);
-  }
+Expression parseIf(std::istream &source, std::vector<Expression> &body) {
+  Lexeme lexeme = lexNoEOF(source);
 
-  switch (lexeme->type) {
+  switch (lexeme.type) {
   case Lexeme::Type::Then: {
-    LexemeSource bodySource{body};
-    return Expression{Expression::Type::IfThen, parseAll(bodySource)};
+    return Expression{Expression::Type::IfThen, body};
   } break;
   case Lexeme::Type::Else: {
-    LexemeSource bodySource{body};
-    std::vector<Lexeme> elseBody;
-    return parseIfElse(source, parseAll(bodySource), elseBody);
+    std::vector<Expression> elseBody;
+    return parseIfElse(source, body, elseBody);
   }
   default: {
-    body.push_back(*lexeme);
+    body.push_back(parseLexeme(lexeme, source));
     return parseIf(source, body);
   } break;
   }
@@ -154,31 +123,22 @@ Expression parseIf(LexemeSource &source, std::vector<Lexeme> &body) {
   exit(EXIT_FAILURE);
 }
 
-Expression parseDefBody(LexemeSource &source, const std::string &word,
-                        std::vector<Lexeme> &body) {
-  std::optional<Lexeme> lexeme = source.get();
-  if (!lexeme) {
-    std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected EOF\n";
-    exit(EXIT_FAILURE);
-  }
+Expression parseDefineBody(std::istream &source, const std::string &word,
+                           std::vector<Expression> &body) {
+  Lexeme lexeme = lexNoEOF(source);
 
-  switch (lexeme->type) {
+  switch (lexeme.type) {
   case Lexeme::Type::Semi: {
-    LexemeSource bodySource{body};
     return Expression{Expression::Type::Define,
-                      Expression::Def{word, parseAll(bodySource)}};
+                      Expression::Def{word, body}};
   } break;
   case Lexeme::Type::Col:
     std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected col\n";
     exit(EXIT_FAILURE);
     break;
-  case Lexeme::Type::Rec:
-    body.push_back(Lexeme{Lexeme::Type::Word, word});
-    return parseDefBody(source, word, body);
-    break;
   default: {
-    body.push_back(*lexeme);
-    return parseDefBody(source, word, body);
+    body.push_back(parseLexeme(lexeme, source));
+    return parseDefineBody(source, word, body);
   } break;
   }
 
@@ -186,18 +146,14 @@ Expression parseDefBody(LexemeSource &source, const std::string &word,
   exit(EXIT_FAILURE);
 }
 
-Expression parseDefWord(LexemeSource &source) {
-  std::optional<Lexeme> lexeme = source.get();
-  if (!lexeme) {
-    std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected EOF\n";
-    exit(EXIT_FAILURE);
-  }
+Expression parseDefineWord(std::istream &source) {
+  Lexeme lexeme = lexNoEOF(source);
 
-  switch (lexeme->type) {
+  switch (lexeme.type) {
   case Lexeme::Type::Word: {
-    const std::string &word = std::get<std::string>(lexeme->data);
-    std::vector<Lexeme> body;
-    return parseDefBody(source, word, body);
+    const std::string &word = std::get<std::string>(lexeme.data);
+    std::vector<Expression> body;
+    return parseDefineBody(source, word, body);
   } break;
   default:
     std::cerr << __FILE__ << ":" << __LINE__ << ": expected WORD\n";
@@ -209,25 +165,29 @@ Expression parseDefWord(LexemeSource &source) {
   exit(EXIT_FAILURE);
 }
 
-std::optional<Expression> parse(LexemeSource &source) {
-  std::optional<Lexeme> lexeme = source.get();
-  if (!lexeme) {
+std::optional<Expression> parse(std::istream &source) {
+  std::optional<Lexeme> lexeme = lex(source);
+  if (lexeme) {
+    return parseLexeme(*lexeme, source);
+  } else {
     return {};
   }
+}
 
-  switch (lexeme->type) {
+Expression parseLexeme(const Lexeme &lexeme, std::istream &source) {
+  switch (lexeme.type) {
 
   case Lexeme::Type::Number:
     return Expression{Expression::Type::Number,
-                      std::get<std::int64_t>(lexeme->data)};
+                      std::get<std::int64_t>(lexeme.data)};
     break;
   case Lexeme::Type::Word:
     return Expression{Expression::Type::Word,
-                      std::get<std::string>(lexeme->data)};
+                      std::get<std::string>(lexeme.data)};
     break;
   case Lexeme::Type::String:
     return Expression{Expression::Type::String,
-                      std::get<std::string>(lexeme->data)};
+                      std::get<std::string>(lexeme.data)};
     break;
 
   case Lexeme::Type::Add:
@@ -300,11 +260,7 @@ std::optional<Expression> parse(LexemeSource &source) {
     break;
 
   case Lexeme::Type::Col:
-    return parseDefWord(source);
-    break;
-  case Lexeme::Type::Rec:
-    std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected recurse\n";
-    exit(EXIT_FAILURE);
+    return parseDefineWord(source);
     break;
   case Lexeme::Type::Semi:
     std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected semicolon\n";
@@ -312,7 +268,7 @@ std::optional<Expression> parse(LexemeSource &source) {
     break;
 
   case Lexeme::Type::If: {
-    std::vector<Lexeme> lexemes;
+    std::vector<Expression> lexemes;
     return parseIf(source, lexemes);
   } break;
   case Lexeme::Type::Then:
@@ -325,7 +281,7 @@ std::optional<Expression> parse(LexemeSource &source) {
     break;
 
   case Lexeme::Type::Begin: {
-    std::vector<Lexeme> lexemes;
+    std::vector<Expression> lexemes;
     return parseBegin(source, lexemes);
   } break;
   case Lexeme::Type::Until:

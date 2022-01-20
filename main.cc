@@ -9,10 +9,9 @@
 
 Engine engine;
 
-void evalStream(std::istream &is) {
-  LexemeSource source(&is);
+void evalLoop(std::istream &is) {
   std::optional<Expression> expr;
-  while ((expr = parse(source))) {
+  while ((expr = parse(is))) {
     engine.eval(*expr);
   }
 }
@@ -24,7 +23,7 @@ void evalFile(const std::filesystem::path &path) {
               << ": : No such file or directory\n";
     exit(EXIT_FAILURE);
   }
-  evalStream(file);
+  evalLoop(file);
   file.close();
 }
 
@@ -37,6 +36,6 @@ int main(int argc, char **argv) {
     evalFile(argv[1]);
   }
 
-  evalStream(std::cin);
+  evalLoop(std::cin);
   return EXIT_SUCCESS;
 }

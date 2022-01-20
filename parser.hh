@@ -10,26 +10,6 @@
 
 #include "lexer.hh"
 
-class LexemeSource {
-private:
-  enum class Type {
-    Stream,
-    Collection,
-  } type;
-  struct Collection {
-    std::vector<Lexeme> lexemes;
-    size_t index;
-  };
-  std::variant<std::istream *, Collection> data;
-
-public:
-  LexemeSource() = delete;
-  LexemeSource(std::istream *is);
-  LexemeSource(const std::vector<Lexeme> &lexemes);
-
-  std::optional<Lexeme> get();
-};
-
 struct Expression {
   enum class Type {
     Number,
@@ -100,6 +80,7 @@ struct Expression {
       data;
 };
 
-std::optional<Expression> parse(LexemeSource &source);
+Expression parseNoEOF(std::istream &source);
+std::optional<Expression> parse(std::istream &is);
 
 #endif // PARSER_HH

@@ -182,8 +182,6 @@ Lexeme lexWordDone(const std::string &word) {
 
   } else if (word == ":") {
     return Lexeme{Lexeme::Type::Col, {}};
-  } else if (word == "recurse") {
-    return Lexeme{Lexeme::Type::Rec, {}};
   } else if (word == ";") {
     return Lexeme{Lexeme::Type::Semi, {}};
 
@@ -262,5 +260,15 @@ std::optional<Lexeme> lex(std::istream &is) {
     } else {
       return lexWord(is, word);
     }
+  }
+}
+
+Lexeme lexNoEOF(std::istream &is) {
+  std::optional<Lexeme> result = lex(is);
+  if (result) {
+    return *result;
+  } else {
+    std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected EOF\n";
+    exit(EXIT_FAILURE);
   }
 }

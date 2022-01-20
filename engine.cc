@@ -20,9 +20,9 @@ std::int64_t Engine::Stack::pop() {
 bool Engine::Stack::empty() { return data.empty(); }
 
 void Engine::Stack::debug() {
-  std::cerr << __FILE__ << ":" << __LINE__ << "<" << data.size() << ": > ";
+  std::cout << "<" << data.size() << "> ";
   for (const std::int64_t number : data) {
-    std::cerr << __FILE__ << ":" << __LINE__ << number << ":  ";
+    std::cout << number << " ";
   }
 }
 
