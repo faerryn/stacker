@@ -30,7 +30,7 @@ char lexEscape(std::istream &is) {
   const int ch = is.get();
 
   if (ch == EOF) {
-    std::cerr << "unexpected EOF\n";
+    std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected EOF\n";
     exit(EXIT_FAILURE);
   }
 
@@ -51,7 +51,7 @@ Lexeme lexChar(std::istream &is) {
   const int ch = is.get();
 
   if (ch == EOF) {
-    std::cerr << "unexpected EOF\n";
+    std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected EOF\n";
     exit(EXIT_FAILURE);
   }
 
@@ -64,7 +64,7 @@ Lexeme lexChar(std::istream &is) {
   }
 
   if (is.get() != '\'') {
-    std::cerr << "expected single-quote\n";
+    std::cerr << __FILE__ << ":" << __LINE__ << ": expected single-quote\n";
     exit(EXIT_FAILURE);
   }
 
@@ -75,7 +75,7 @@ Lexeme lexStr(std::istream &is, std::string &str) {
   const int ch = is.get();
 
   if (ch == EOF) {
-    std::cerr << "unexpected EOF\n";
+    std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected EOF\n";
     exit(EXIT_FAILURE);
   }
 

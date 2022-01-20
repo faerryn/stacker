@@ -9,7 +9,7 @@ void Engine::Stack::push(std::int64_t number) { data.push_back(number); }
 
 std::int64_t Engine::Stack::pop() {
   if (data.empty()) {
-    std::cerr << "empty stack\n";
+    std::cerr << __FILE__ << ":" << __LINE__ << ": empty stack\n";
     exit(EXIT_FAILURE);
   }
   const std::int64_t result = data.back();
@@ -20,9 +20,9 @@ std::int64_t Engine::Stack::pop() {
 bool Engine::Stack::empty() { return data.empty(); }
 
 void Engine::Stack::debug() {
-  std::cerr << "<" << data.size() << "> ";
+  std::cerr << __FILE__ << ":" << __LINE__ << "<" << data.size() << ": > ";
   for (const std::int64_t number : data) {
-    std::cerr << number << " ";
+    std::cerr << __FILE__ << ":" << __LINE__ << number << ":  ";
   }
 }
 
@@ -34,7 +34,7 @@ void Engine::evalBody(const Expression::Body &body) {
 
 void Engine::define(const std::string &word, const Expression::Body &def) {
   if (dictionary.contains(word)) {
-    std::cerr << "word already defined\n";
+    std::cerr << __FILE__ << ":" << __LINE__ << ": word already defined\n";
     exit(EXIT_FAILURE);
   }
   dictionary[word] = def;
@@ -61,12 +61,13 @@ void Engine::eval(const Expression &expression) {
         eval(expr);
       }
       if (!returnStack.empty()) {
-        std::cerr << "expected empty return stack\n";
+        std::cerr << __FILE__ << ":" << __LINE__
+                  << ": expected empty return stack\n";
         exit(EXIT_FAILURE);
       }
       returnStack = std::move(returnStackMove);
     } else {
-      std::cerr << "unknown word\n";
+      std::cerr << __FILE__ << ":" << __LINE__ << ": unknown word\n";
       exit(EXIT_FAILURE);
     }
   } break;
@@ -269,11 +270,12 @@ void Engine::eval(const Expression &expression) {
 
 Engine::~Engine() {
   if (!allocs.empty()) {
-    std::cerr << "found memory leak\n";
+    std::cerr << __FILE__ << ":" << __LINE__ << ": found memory leak\n";
     exit(EXIT_FAILURE);
   }
   if (!returnStack.empty()) {
-    std::cerr << "expected empty return stack\n";
+    std::cerr << __FILE__ << ":" << __LINE__
+              << ": expected empty return stack\n";
     exit(EXIT_FAILURE);
   }
 }

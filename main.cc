@@ -20,7 +20,8 @@ void evalStream(std::istream &is) {
 void evalFile(const std::filesystem::path &path) {
   std::ifstream file{path};
   if (!file.is_open()) {
-    std::cerr << path << ": No such file or directory\n";
+    std::cerr << __FILE__ << ":" << __LINE__ << path
+              << ": : No such file or directory\n";
     exit(EXIT_FAILURE);
   }
   evalStream(file);
