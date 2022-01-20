@@ -9,18 +9,22 @@
 
 int main(int argc, char **argv) {
   Engine engine;
+
+  if (argc == 1) {
+    engine.evalIStream(std::cin);
+  }
   for (int i = 1; i < argc; ++i) {
-    std::ifstream file{argv[i]};
-    if (!file.is_open()) {
-      std::cerr << argv[i] << ": No such file or directory\n";
-      exit(EXIT_FAILURE);
+    if (std::strcmp(argv[i], "-") == 0) {
+      engine.evalIStream(std::cin);
+    } else {
+      std::ifstream file{argv[i]};
+      if (!file.is_open()) {
+        std::cerr << argv[i] << ": No such file or directory\n";
+        exit(EXIT_FAILURE);
+      }
+      engine.evalIStream(file);
+      file.close();
     }
-    LexemeSource source(&file);
-    std::optional<Expression> expr;
-    while ((expr = parse(source))) {
-      engine.eval(*expr);
-    }
-    file.close();
   }
   return EXIT_SUCCESS;
 }

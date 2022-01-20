@@ -28,6 +28,7 @@ private:
 
 public:
   void eval(const Expression &expression);
+  void evalIStream(std::istream &is);
 };
 
 #endif // ENGINE_HH

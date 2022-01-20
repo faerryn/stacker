@@ -220,3 +220,11 @@ void Engine::eval(const Expression &expression) {
     break;
   }
 }
+
+void Engine::evalIStream(std::istream &is) {
+  LexemeSource source(&is);
+  std::optional<Expression> expr;
+  while ((expr = parse(source))) {
+    eval(*expr);
+  }
+}
