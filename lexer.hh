@@ -41,6 +41,7 @@ struct Lexeme {
     RGET,
 
     COL,
+    RECURSE,
     SEMICOL,
 
     IF,

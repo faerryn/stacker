@@ -191,6 +191,14 @@ Expression parseDefBody(LexemeSource &source, const std::string &word,
     return Expression{Expression::Type::DEF,
                       Expression::Def{word, parseAll(bodySource)}};
   } break;
+  case Lexeme::Type::COL:
+    std::cerr << "unexpected col\n";
+    exit(EXIT_FAILURE);
+    break;
+  case Lexeme::Type::RECURSE:
+    body.push_back(Lexeme{Lexeme::Type::WORD, word});
+    return parseDefBody(source, word, body);
+    break;
   default: {
     body.push_back(*lexeme);
     return parseDefBody(source, word, body);
@@ -315,6 +323,10 @@ std::optional<Expression> parse(LexemeSource &source) {
 
   case Lexeme::Type::COL:
     return parseDefWord(source);
+    break;
+  case Lexeme::Type::RECURSE:
+    std::cerr << "unexpected recurse\n";
+    exit(EXIT_FAILURE);
     break;
   case Lexeme::Type::SEMICOL:
     std::cerr << "unexpected semicolon\n";

@@ -226,6 +226,8 @@ Lexeme lexWordDone(const std::string &word) {
 
   } else if (word == ":") {
     return Lexeme{Lexeme::Type::COL, {}};
+  } else if (word == "recurse") {
+    return Lexeme{Lexeme::Type::RECURSE, {}};
   } else if (word == ";") {
     return Lexeme{Lexeme::Type::SEMICOL, {}};
 
