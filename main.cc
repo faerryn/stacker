@@ -23,15 +23,11 @@ int main(int argc, char **argv) {
   std::filesystem::path selfPath{argv[0]};
   std::filesystem::path corePath = selfPath.replace_filename("core.forth");
   evalFile(corePath);
-  if (argc == 1) {
-    engine.evalIStream(std::cin);
+
+  if (argc >= 2) {
+    evalFile(argv[1]);
   }
-  for (int i = 1; i < argc; ++i) {
-    if (std::strcmp(argv[i], "-") == 0) {
-      engine.evalIStream(std::cin);
-    } else {
-      evalFile(argv[i]);
-    }
-  }
+
+  engine.evalIStream(std::cin);
   return EXIT_SUCCESS;
 }
