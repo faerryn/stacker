@@ -256,7 +256,12 @@ void Engine::evalExpression(const Expression &expression) {
     parameterStack.push(*reinterpret_cast<char *>(parameterStack.pop()));
     break;
   case Expression::Type::Alloc: {
-    std::uint8_t *const addr = new std::uint8_t[parameterStack.pop()];
+    const std::int64_t size = parameterStack.pop();
+    if (size <= 0) {
+      std::cerr << "expected positive alloc\n";
+      exit(EXIT_FAILURE);
+    }
+    std::uint8_t *const addr = new std::uint8_t[size];
     allocs.insert(addr);
     parameterStack.push(reinterpret_cast<std::int64_t>(addr));
   } break;
