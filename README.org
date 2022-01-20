@@ -11,6 +11,7 @@ Currently, STACKER implements the following:
 - Data
   - int64
   - char8 (single-quoted with basic escape sequences)
+  - string (double-quoted)
 - Arithmetic Operators
   - +
   - -
@@ -41,9 +42,10 @@ Currently, STACKER implements the following:
   - begin/again
   - begin/while/repeat
 - Storage
-  - variable
   - !
   - @
+  - c!
+  - c@
 - Optional
   - .s
   - bye

@@ -24,7 +24,7 @@
 : ?dup dup dup 0= if drop then ;
 
 : negate invert 1+ ;
-: abs dup 0 < if negate then ;
+: abs dup 0< if negate then ;
 : min 2dup > if swap then drop ;
 : max 2dup < if swap then drop ;
 
@@ -34,6 +34,10 @@
 : */ -rot * swap / ;
 : */rem -rot * swap /rem ;
 : */mod -rot * swap /mod ;
+
+: _.digit '0' + emit ;
+: _.num dup 10 < if _.digit else 10 /rem swap _.num _.digit then ;
+: . dup 0< if '-' emit negate then _.num ' ' emit ;
 
 : ? @ . ;
 : +! tuck @ + ! ;

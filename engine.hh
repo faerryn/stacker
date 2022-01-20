@@ -22,8 +22,7 @@ private:
   Stack parameterStack;
   Stack returnStack;
   std::map<std::string, Expression::Body> dictionary;
-  std::vector<std::int64_t *> variables;
-  std::vector<std::string*> strings;
+  std::vector<std::string *> strings;
 
   void evalBody(const Expression::Body &body);
   void define(const std::string &word, const Expression::Body &def);
