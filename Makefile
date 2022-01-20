@@ -5,17 +5,18 @@ sources := $(wildcard *.cc)
 objects := $(patsubst %.cc,%.o,$(sources))
 depends := $(patsubst %.cc,%.d,$(sources))
 
-.PHONY: all clean
 
 stacker: $(objects)
 	$(CXX) $(CXXFLAGS) $^ -o $@
-
-all: stacker
-
-clean:
-	$(RM) $(objects) $(depends) stacker
 
 -include $(depends)
 
 %.o: %.cc Makefile
 	$(CXX) $(CXXFLAGS) -MD -MP -c $< -o $@
+
+.PHONY: all clean
+
+all: stacker
+
+clean:
+	$(RM) $(objects) $(depends) stacker
