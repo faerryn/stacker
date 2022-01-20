@@ -17,6 +17,8 @@ std::int64_t Engine::Stack::pop() {
   return result;
 }
 
+bool Engine::Stack::empty() { return data.empty(); }
+
 void Engine::Stack::debug() {
   std::cerr << "<" << data.size() << "> ";
   for (const std::int64_t number : data) {
@@ -52,10 +54,17 @@ void Engine::eval(const Expression &expression) {
     const std::string &word = std::get<std::string>(expression.data);
     const auto &find = dictionary.find(word);
     if (find != dictionary.end()) {
+      Stack returnStackMove = std::move(returnStack);
+      returnStack = Stack();
       const Expression::Body &body = find->second;
       for (const Expression &expr : body) {
         eval(expr);
       }
+      if (!returnStack.empty()) {
+        std::cerr << "expected empty return stack\n";
+        exit(EXIT_FAILURE);
+      }
+      returnStack = std::move(returnStackMove);
     } else {
       std::cerr << "unknown word\n";
       exit(EXIT_FAILURE);
@@ -259,8 +268,12 @@ void Engine::eval(const Expression &expression) {
 }
 
 Engine::~Engine() {
-  for (const std::uint8_t *addr : allocs) {
-    std::cerr << "free " << reinterpret_cast<std::int64_t>(addr) << "\n";
-    delete[] addr;
+  if (!allocs.empty()) {
+    std::cerr << "found memory leak\n";
+    exit(EXIT_FAILURE);
+  }
+  if (!returnStack.empty()) {
+    std::cerr << "expected empty return stack\n";
+    exit(EXIT_FAILURE);
   }
 }

@@ -3,9 +3,9 @@
 
 #include <cstdint>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
-#include <set>
 
 #include "parser.hh"
 
@@ -18,6 +18,7 @@ private:
   public:
     void push(std::int64_t number);
     std::int64_t pop();
+    bool empty();
     void debug();
   };
   Stack parameterStack;
