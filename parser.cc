@@ -374,6 +374,10 @@ std::optional<Expression> parse(LexemeSource &source) {
   case Lexeme::Type::FETCH:
     return Expression{Expression::Type::FETCH, {}};
     break;
+
+  case Lexeme::Type::DEBUG:
+    return Expression{Expression::Type::DEBUG, {}};
+    break;
   }
 
   std::cerr << "unexpected\n";

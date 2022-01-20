@@ -76,6 +76,8 @@ struct Expression {
     VARIABLE,
     STORE,
     FETCH,
+
+    DEBUG,
   } type;
   using Body = std::vector<Expression>;
   struct Def {

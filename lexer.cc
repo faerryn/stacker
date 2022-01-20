@@ -238,6 +238,9 @@ std::optional<Lexeme> lexString(const std::string &word) {
   } else if (word == "@") {
     return Lexeme{Lexeme::Type::FETCH, {}};
 
+  } else if (word == ".S") {
+    return Lexeme{Lexeme::Type::DEBUG, {}};
+
   } else {
     const std::optional<std::int64_t> num = lexInt64(word);
     if (num) {

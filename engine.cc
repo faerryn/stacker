@@ -2,16 +2,23 @@
 
 #include "parser.hh"
 
-void Engine::Stack::push(std::int64_t number) { data.push(number); }
+void Engine::Stack::push(std::int64_t number) { data.push_back(number); }
 
 std::int64_t Engine::Stack::pop() {
   if (data.empty()) {
     std::cerr << "empty stack\n";
     exit(EXIT_FAILURE);
   }
-  const std::int64_t result = data.top();
-  data.pop();
+  const std::int64_t result = data.back();
+  data.pop_back();
   return result;
+}
+
+void Engine::Stack::debug() {
+  std::cerr << "<" << data.size() << "> ";
+  for (const std::int64_t number : data) {
+    std::cerr << number << " ";
+  }
 }
 
 void Engine::evalBody(const Expression::Body &body) {
@@ -217,6 +224,10 @@ void Engine::eval(const Expression &expression) {
   } break;
   case Expression::Type::FETCH:
     parameterStack.push(tape[parameterStack.pop()]);
+    break;
+
+  case Expression::Type::DEBUG:
+    parameterStack.debug();
     break;
   }
 }
