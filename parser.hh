@@ -78,6 +78,8 @@ struct Expression {
     FETCH,
 
     DEBUG,
+
+    BYE,
   } type;
   using Body = std::vector<Expression>;
   struct Def {

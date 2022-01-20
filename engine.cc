@@ -1,6 +1,7 @@
 #include "engine.hh"
 
 #include "parser.hh"
+#include <cstdlib>
 
 void Engine::Stack::push(std::int64_t number) { data.push_back(number); }
 
@@ -228,6 +229,10 @@ void Engine::eval(const Expression &expression) {
 
   case Expression::Type::DEBUG:
     parameterStack.debug();
+    break;
+
+  case Expression::Type::BYE:
+    exit(EXIT_SUCCESS);
     break;
   }
 }

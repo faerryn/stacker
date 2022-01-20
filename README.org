@@ -16,8 +16,8 @@ Currently, STACKER implements the following:
   - -
   - *
   - /
-  - rem (FORTH mod)
   - mod (non-conformal: [[https://mathworld.wolfram.com/ResidueClass.html][residue class]])
+  - rem (what normal FORTH mod does)
 - Comparison Operators
   - >
   - <
@@ -44,3 +44,5 @@ Currently, STACKER implements the following:
   - variable
   - !
   - @
+- .s
+- bye
