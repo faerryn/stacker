@@ -46,4 +46,3 @@
 : cr '\n' emit ;
 
 : type begin dup 0> while swap dup c@ emit 1+ swap 1- repeat drop drop ;
-: msg over swap type free ;

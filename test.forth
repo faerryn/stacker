@@ -14,6 +14,4 @@ then then ;
 : testack 3 3 ack . cr ;
 testack
 
-"Hello, world!\n" msg
-
 bye
