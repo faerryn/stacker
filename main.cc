@@ -5,7 +5,6 @@
 #include <iostream>
 
 #include "engine.hh"
-#include "parser.hh"
 
 Engine engine;
 
