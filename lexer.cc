@@ -163,6 +163,8 @@ Lexeme lexWordDone(const std::string &word) {
 
   } else if (word == "emit") {
     return Lexeme{Lexeme::Type::Emit, {}};
+  } else if (word == "key") {
+    return Lexeme{Lexeme::Type::Key, {}};
 
   } else if (word == "dup") {
     return Lexeme{Lexeme::Type::Dup, {}};

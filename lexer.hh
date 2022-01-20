@@ -30,6 +30,7 @@ struct Lexeme {
     Inv,
 
     Emit,
+    Key,
 
     Dup,
     Drop,

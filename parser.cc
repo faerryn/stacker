@@ -237,6 +237,9 @@ Expression parseLexeme(const Lexeme &lexeme, std::istream &source) {
   case Lexeme::Type::Emit:
     return Expression{Expression::Type::Emit, {}};
     break;
+  case Lexeme::Type::Key:
+    return Expression{Expression::Type::Key, {}};
+    break;
 
   case Lexeme::Type::Dup:
     return Expression{Expression::Type::Dup, {}};

@@ -154,6 +154,9 @@ void Engine::evalExpression(const Expression &expression) {
   case Expression::Type::Emit:
     std::cout.put(char(parameterStack.pop()));
     break;
+  case Expression::Type::Key:
+    parameterStack.push(std::cin.get());
+    break;
 
   case Expression::Type::Dup: {
     const std::int64_t a = parameterStack.pop();

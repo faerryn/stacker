@@ -33,6 +33,7 @@ struct Expression {
     Inv,
 
     Emit,
+    Key,
 
     Dup,
     Drop,

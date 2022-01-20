@@ -1,0 +1,4 @@
+#+STARTUP: indent
+
+* TODO access stdin
+* TODO access argc, argv
