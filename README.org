@@ -1,14 +1,10 @@
 #+STARTUP: indent
 
 * STACKER
-STACKER is a buggy, non-conformal interpreter for a subset of [[https://www.forth.com/][FORTH]], a
-stack-based language.  STACKER diverges from FORTH standard in a
-number of ways: STACKER is case-sensitive, it does not support FOTH's
-dot-quote strings, and it forbids modifying already-defind words.
-STACKER also has divergent behaviors, documented below.
+STACKER is a stack-based programming language inspired by [[https://www.forth.com/][FORTH]] and
+[[https://github.com/tsoding/porth][Porth]].  Currently, it implements the following features:
 
-Currently, STACKER implements the following:
-- Data
+- Data Entry
   - int64
   - char8 (single-quoted with basic escape sequences)
   - string (double-quoted dynamically allocated)
@@ -24,11 +20,11 @@ Currently, STACKER implements the following:
   - <
   - '='
   - '<>'
-- Logical Operations
+- Logical Operators
   - and
   - or
   - invert
-- Stack Operations
+- Stack Operators
   - dup
   - drop
   - swap
