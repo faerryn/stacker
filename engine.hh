@@ -22,12 +22,14 @@ private:
   Stack parameterStack;
   Stack returnStack;
   std::map<std::string, Expression::Body> dictionary;
-  std::vector<std::int64_t> tape;
+  std::vector<std::int64_t*> variables;
 
   void evalBody(const Expression::Body &body);
   void define(const std::string &word, const Expression::Body &def);
 
 public:
+  ~Engine();
+
   void eval(const Expression &expression);
   void evalIStream(std::istream &is);
 };

@@ -214,17 +214,20 @@ void Engine::eval(const Expression &expression) {
   } break;
 
   case Expression::Type::VARIABLE: {
+    std::int64_t *const ptr = new std::int64_t;
+    variables.push_back(ptr);
     const std::string &word = std::get<std::string>(expression.data);
-    define(word, {{Expression::Type::NUM, std::int64_t(tape.size())}});
-    tape.push_back(0);
+    define(word,
+           {{Expression::Type::NUM, reinterpret_cast<std::int64_t>(ptr)}});
   } break;
   case Expression::Type::STORE: {
     const std::int64_t b = parameterStack.pop();
     const std::int64_t a = parameterStack.pop();
-    tape[b] = a;
+    *reinterpret_cast<std::int64_t *>(b) = a;
   } break;
   case Expression::Type::FETCH:
-    parameterStack.push(tape[parameterStack.pop()]);
+    parameterStack.push(
+        *reinterpret_cast<std::int64_t *>(parameterStack.pop()));
     break;
 
   case Expression::Type::DEBUG:
@@ -241,5 +244,11 @@ void Engine::evalIStream(std::istream &is) {
   std::optional<Expression> expr;
   while ((expr = parse(source))) {
     eval(*expr);
+  }
+}
+
+Engine::~Engine() {
+  for (std::int64_t * const ptr : variables) {
+    delete ptr;
   }
 }
