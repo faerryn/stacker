@@ -2,16 +2,28 @@
 
 #include <cctype>
 #include <cstdlib>
-#include <map>
+#include <optional>
 
-std::optional<std::int64_t> lexInt64(const std::string &ident);
-std::optional<Lexeme> lexString(const std::string &word);
+std::optional<std::int64_t> chToDec(int ch);
+std::optional<std::int64_t> chToHex(int ch);
+std::optional<std::int64_t> chToOct(int ch);
+bool isSpace(int ch);
 
-std::optional<Lexeme> lexWord(std::istream &is, std::string &word);
-int lexChar(std::istream &is);
-int lexEscape(std::istream &is);
+Lexeme lexNum(std::istream &is, std::string &word, std::int64_t sign,
+              std::int64_t mag);
+Lexeme lexSign(std::istream &is, std::string &word, std::int64_t sign);
 
-std::optional<int> chToDec(int ch) {
+char lexEscape(std::istream &is);
+Lexeme lexChar(std::istream &is);
+
+Lexeme lexWordDone(const std::string &word);
+Lexeme lexWord(std::istream &is, std::string &word);
+
+bool isSpace(int ch) {
+  return ch == EOF || ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t';
+}
+
+std::optional<std::int64_t> chToDec(int ch) {
   if ('0' <= ch && ch <= '9') {
     return ch - '0';
   } else {
@@ -19,7 +31,7 @@ std::optional<int> chToDec(int ch) {
   }
 }
 
-std::optional<int> chToHex(int ch) {
+std::optional<std::int64_t> chToHex(int ch) {
   if ('0' <= ch && ch <= '9') {
     return ch - '0';
   } else if ('A' <= ch && ch <= 'F') {
@@ -31,7 +43,7 @@ std::optional<int> chToHex(int ch) {
   }
 }
 
-std::optional<int> chToOct(int ch) {
+std::optional<std::int64_t> chToOct(int ch) {
   if ('0' <= ch && ch <= '7') {
     return ch - '0';
   } else {
@@ -39,7 +51,7 @@ std::optional<int> chToOct(int ch) {
   }
 }
 
-int lexEscape(std::istream &is) {
+char lexEscape(std::istream &is) {
   const int ch = is.get();
 
   if (ch == EOF) {
@@ -55,9 +67,9 @@ int lexEscape(std::istream &is) {
     return '\t';
   } else if (ch == '\b') {
     return '\b';
-  } else if (const std::optional<int> &a = chToDec(ch); a) {
-    const std::optional<int> b = chToDec(is.get());
-    const std::optional<int> c = chToDec(is.get());
+  } else if (const std::optional<std::int64_t> &a = chToDec(ch); a) {
+    const std::optional<std::int64_t> b = chToDec(is.get());
+    const std::optional<std::int64_t> c = chToDec(is.get());
     if (!b || !c) {
       std::cerr << "expected decimal\n";
       exit(EXIT_FAILURE);
@@ -69,8 +81,8 @@ int lexEscape(std::istream &is) {
     }
     return value;
   } else if (ch == 'x') {
-    const std::optional<int> a = chToHex(is.get());
-    const std::optional<int> b = chToHex(is.get());
+    const std::optional<std::int64_t> a = chToHex(is.get());
+    const std::optional<std::int64_t> b = chToHex(is.get());
     if (!a || !b) {
       std::cerr << "expected hexadecimal\n";
       exit(EXIT_FAILURE);
@@ -82,9 +94,9 @@ int lexEscape(std::istream &is) {
     }
     return value;
   } else if (ch == 'o') {
-    const std::optional<int> a = chToOct(is.get());
-    const std::optional<int> b = chToOct(is.get());
-    const std::optional<int> c = chToOct(is.get());
+    const std::optional<std::int64_t> a = chToOct(is.get());
+    const std::optional<std::int64_t> b = chToOct(is.get());
+    const std::optional<std::int64_t> c = chToOct(is.get());
     if (!a || !b || !c) {
       std::cerr << "expected octal\n";
       exit(EXIT_FAILURE);
@@ -100,7 +112,7 @@ int lexEscape(std::istream &is) {
   }
 }
 
-int lexChar(std::istream &is) {
+Lexeme lexChar(std::istream &is) {
   const int ch = is.get();
 
   if (ch == EOF) {
@@ -108,7 +120,7 @@ int lexChar(std::istream &is) {
     exit(EXIT_FAILURE);
   }
 
-  int value;
+  char value;
 
   if (ch == '\\') {
     value = lexEscape(is);
@@ -121,44 +133,48 @@ int lexChar(std::istream &is) {
     exit(EXIT_FAILURE);
   }
 
-  return value;
+  return Lexeme{Lexeme::Type::NUM, value};
 }
 
-std::optional<std::int64_t> lexInt64(const std::string &ident) {
-  if (ident.empty()) {
-    return {};
-  }
-  std::int64_t result = 0;
+Lexeme lexNum(std::istream &is, std::string &word, std::int64_t sign,
+              std::int64_t mag) {
+  const int ch = is.get();
 
-  std::int64_t sign = +1;
-  size_t i = 0;
-  if (ident[i] == '-') {
-    sign = -1;
-    ++i;
-  } else if (ident[i] == '+') {
-    sign = +1;
-    ++i;
+  if (isSpace(ch)) {
+    return Lexeme{Lexeme::Type::NUM, sign * mag};
   }
 
-  while (i < ident.size()) {
-    const std::optional<int> dec = chToDec(ident[i]);
-    if (dec) {
-      result *= 10;
-      result += *dec;
-    } else {
-      return {};
-    }
-    ++i;
-  }
+  word.push_back(ch);
 
-  return sign * result;
+  std::optional<std::int64_t> dec = chToDec(ch);
+  if (dec) {
+    mag *= 10;
+    mag += *dec;
+    return lexNum(is, word, sign, mag);
+  } else {
+    return lexWord(is, word);
+  }
 }
 
-std::optional<Lexeme> lexString(const std::string &word) {
-  if (word.empty()) {
-    return {};
+Lexeme lexSign(std::istream &is, std::string &word, std::int64_t sign) {
+  const int ch = is.get();
 
-  } else if (word == "+") {
+  if (isSpace(ch)) {
+    return lexWordDone(word);
+  }
+
+  word.push_back(ch);
+
+  std::optional<std::int64_t> dec = chToDec(ch);
+  if (dec) {
+    return lexNum(is, word, sign, *dec);
+  } else {
+    return lexWord(is, word);
+  }
+}
+
+Lexeme lexWordDone(const std::string &word) {
+  if (word == "+") {
     return Lexeme{Lexeme::Type::ADD, {}};
   } else if (word == "-") {
     return Lexeme{Lexeme::Type::SUB, {}};
@@ -242,19 +258,15 @@ std::optional<Lexeme> lexString(const std::string &word) {
     return Lexeme{Lexeme::Type::DEBUG, {}};
 
   } else {
-    const std::optional<std::int64_t> num = lexInt64(word);
-    if (num) {
-      return Lexeme{Lexeme::Type::NUM, *num};
-    } else {
-      return Lexeme{Lexeme::Type::WORD, word};
-    }
+    return Lexeme{Lexeme::Type::WORD, word};
   }
 }
 
-std::optional<Lexeme> lexWord(std::istream &is, std::string &word) {
+Lexeme lexWord(std::istream &is, std::string &word) {
   const int ch = is.get();
-  if (ch == EOF || std::isspace(ch)) {
-    return lexString(word);
+
+  if (isSpace(ch)) {
+    return lexWordDone(word);
   } else {
     word.push_back(ch);
     return lexWord(is, word);
@@ -265,13 +277,22 @@ std::optional<Lexeme> lex(std::istream &is) {
   const int ch = is.get();
   if (ch == EOF) {
     return {};
-  } else if (std::isspace(ch)) {
+  } else if (isSpace(ch)) {
     return lex(is);
   } else if (ch == '\'') {
-    return Lexeme{Lexeme::Type::NUM, lexChar(is)};
+    return lexChar(is);
   } else {
     std::string word;
     word.push_back(ch);
-    return lexWord(is, word);
+    std::optional<std::int64_t> dec = chToDec(ch);
+    if (dec) {
+      return lexNum(is, word, +1, *dec);
+    } else if (ch == '+') {
+      return lexSign(is, word, +1);
+    } else if (ch == '-') {
+      return lexSign(is, word, -1);
+    } else {
+      return lexWord(is, word);
+    }
   }
 }
