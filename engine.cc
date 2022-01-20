@@ -239,16 +239,8 @@ void Engine::eval(const Expression &expression) {
   }
 }
 
-void Engine::evalIStream(std::istream &is) {
-  LexemeSource source(&is);
-  std::optional<Expression> expr;
-  while ((expr = parse(source))) {
-    eval(*expr);
-  }
-}
-
 Engine::~Engine() {
-  for (std::int64_t * const ptr : variables) {
+  for (std::int64_t *const ptr : variables) {
     delete ptr;
   }
 }
