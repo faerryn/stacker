@@ -268,8 +268,13 @@ void Engine::evalExpression(const Expression &expression) {
   case Expression::Type::Free: {
     std::uint8_t *const addr =
         reinterpret_cast<std::uint8_t *>(parameterStack.pop());
-    allocs.erase(addr);
-    delete[] addr;
+    if (allocs.contains(addr)) {
+      allocs.erase(addr);
+      delete[] addr;
+    } else {
+      std::cerr << __FILE__ << ":" << __LINE__ << "improper free\n";
+      exit(EXIT_FAILURE);
+    }
   } break;
 
   case Expression::Type::DotS:
