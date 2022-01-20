@@ -34,3 +34,6 @@
 
 : ? @ . ;
 : +! tuck @ + ! ;
+
+: spaces begin dup 0> while ' ' emit 1- repeat ;
+: cr '\n' emit ;
