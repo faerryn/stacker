@@ -4,5 +4,5 @@
 * DONE Standard Library with things like `2dup`, `/mod`, etc...
 * DONE Determine dictionary overwriting behavior (maybe OCaml-style closures?)
 * TODO Figure out strings
-* TODO Eliminate use of printf
+* DONE Eliminate use of printf
 * TODO Detect abuse of return stack

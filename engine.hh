@@ -13,6 +13,7 @@ private:
   class Stack {
   private:
     std::stack<std::int64_t> data;
+
   public:
     void push(std::int64_t number);
     std::int64_t pop();
@@ -24,6 +25,7 @@ private:
 
   void evalBody(const Expression::Body &body);
   void define(const std::string &word, const Expression::Body &def);
+
 public:
   void eval(const Expression &expression);
 };

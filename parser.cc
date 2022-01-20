@@ -1,6 +1,5 @@
 #include "parser.hh"
 
-#include <cstdio>
 #include <cstdlib>
 #include <vector>
 
@@ -27,7 +26,7 @@ std::optional<Lexeme> LexemeSource::get() {
     return {};
     break;
   case Type::FILE:
-    return lex(std::get<FILE *>(data));
+    return lex(*std::get<std::istream *>(data));
     break;
   case Type::COLLECTION: {
     Collection &collection = std::get<Collection>(data);
@@ -41,7 +40,7 @@ std::optional<Lexeme> LexemeSource::get() {
   } break;
   }
 
-  fprintf(stderr, "unexpected\n");
+  std::cerr << "unexpected\n";
   exit(EXIT_FAILURE);
 }
 
@@ -57,7 +56,7 @@ Expression::Body parseAll(LexemeSource &source) {
 std::optional<Expression> parseVariable(LexemeSource &source) {
   std::optional<Lexeme> lexeme = source.get();
   if (!lexeme) {
-    fprintf(stderr, "unexpected EOF\n");
+    std::cerr << "unexpected EOF\n";
     exit(EXIT_FAILURE);
   }
 
@@ -67,7 +66,7 @@ std::optional<Expression> parseVariable(LexemeSource &source) {
                       std::get<std::string>(lexeme->data)};
     break;
   default:
-    fprintf(stderr, "expected word\n");
+    std::cerr << "expected word\n";
     exit(EXIT_FAILURE);
     break;
   }
@@ -78,7 +77,7 @@ std::optional<Expression> parseBeginWhile(LexemeSource &source,
                                           std::vector<Lexeme> &body) {
   std::optional<Lexeme> lexeme = source.get();
   if (!lexeme) {
-    fprintf(stderr, "unexpected EOF\n");
+    std::cerr << "unexpected EOF\n";
     exit(EXIT_FAILURE);
   }
 
@@ -94,7 +93,7 @@ std::optional<Expression> parseBeginWhile(LexemeSource &source,
   } break;
   }
 
-  fprintf(stderr, "unexpected\n");
+  std::cerr << "unexpected\n";
   exit(EXIT_FAILURE);
 }
 
@@ -102,7 +101,7 @@ std::optional<Expression> parseBegin(LexemeSource &source,
                                      std::vector<Lexeme> &body) {
   std::optional<Lexeme> lexeme = source.get();
   if (!lexeme) {
-    fprintf(stderr, "unexpected EOF\n");
+    std::cerr << "unexpected EOF\n";
     exit(EXIT_FAILURE);
   }
 
@@ -126,7 +125,7 @@ std::optional<Expression> parseBegin(LexemeSource &source,
     break;
   }
 
-  fprintf(stderr, "unexpected\n");
+  std::cerr << "unexpected\n";
   exit(EXIT_FAILURE);
 }
 
@@ -135,7 +134,7 @@ std::optional<Expression> parseIfElse(LexemeSource &source,
                                       std::vector<Lexeme> &body) {
   std::optional<Lexeme> lexeme = source.get();
   if (!lexeme) {
-    fprintf(stderr, "unexpected EOF\n");
+    std::cerr << "unexpected EOF\n";
     exit(EXIT_FAILURE);
   }
 
@@ -151,7 +150,7 @@ std::optional<Expression> parseIfElse(LexemeSource &source,
   } break;
   }
 
-  fprintf(stderr, "unexpected\n");
+  std::cerr << "unexpected\n";
   exit(EXIT_FAILURE);
 }
 
@@ -159,7 +158,7 @@ std::optional<Expression> parseIf(LexemeSource &source,
                                   std::vector<Lexeme> &body) {
   std::optional<Lexeme> lexeme = source.get();
   if (!lexeme) {
-    fprintf(stderr, "unexpected EOF\n");
+    std::cerr << "unexpected EOF\n";
     exit(EXIT_FAILURE);
   }
 
@@ -179,7 +178,7 @@ std::optional<Expression> parseIf(LexemeSource &source,
   } break;
   }
 
-  fprintf(stderr, "unexpected\n");
+  std::cerr << "unexpected\n";
   exit(EXIT_FAILURE);
 }
 
@@ -188,7 +187,7 @@ std::optional<Expression> parseDefBody(LexemeSource &source,
                                        std::vector<Lexeme> &body) {
   std::optional<Lexeme> lexeme = source.get();
   if (!lexeme) {
-    fprintf(stderr, "unexpected EOF\n");
+    std::cerr << "unexpected EOF\n";
     exit(EXIT_FAILURE);
   }
 
@@ -204,14 +203,14 @@ std::optional<Expression> parseDefBody(LexemeSource &source,
   } break;
   }
 
-  fprintf(stderr, "unexpected\n");
+  std::cerr << "unexpected\n";
   exit(EXIT_FAILURE);
 }
 
 std::optional<Expression> parseDefWord(LexemeSource &source) {
   std::optional<Lexeme> lexeme = source.get();
   if (!lexeme) {
-    fprintf(stderr, "unexpected EOF\n");
+    std::cerr << "unexpected EOF\n";
     exit(EXIT_FAILURE);
   }
 
@@ -222,12 +221,12 @@ std::optional<Expression> parseDefWord(LexemeSource &source) {
     return parseDefBody(source, word, body);
   } break;
   default:
-    fprintf(stderr, "expected WORD\n");
+    std::cerr << "expected WORD\n";
     exit(EXIT_FAILURE);
     break;
   }
 
-  fprintf(stderr, "unexpected\n");
+  std::cerr << "unexpected\n";
   exit(EXIT_FAILURE);
 }
 
@@ -324,7 +323,7 @@ std::optional<Expression> parse(LexemeSource &source) {
     return parseDefWord(source);
     break;
   case Lexeme::Type::SEMICOL:
-    fprintf(stderr, "unexpected semicolon\n");
+    std::cerr << "unexpected semicolon\n";
     exit(EXIT_FAILURE);
     break;
 
@@ -333,11 +332,11 @@ std::optional<Expression> parse(LexemeSource &source) {
     return parseIf(source, lexemes);
   } break;
   case Lexeme::Type::THEN:
-    fprintf(stderr, "unexpected THEN\n");
+    std::cerr << "unexpected THEN\n";
     exit(EXIT_FAILURE);
     break;
   case Lexeme::Type::ELSE:
-    fprintf(stderr, "unexpected ELSE\n");
+    std::cerr << "unexpected ELSE\n";
     exit(EXIT_FAILURE);
     break;
 
@@ -346,19 +345,19 @@ std::optional<Expression> parse(LexemeSource &source) {
     return parseBegin(source, lexemes);
   } break;
   case Lexeme::Type::UNTIL:
-    fprintf(stderr, "unexpected UNTIL\n");
+    std::cerr << "unexpected UNTIL\n";
     exit(EXIT_FAILURE);
     break;
   case Lexeme::Type::WHILE:
-    fprintf(stderr, "unexpected WHILE\n");
+    std::cerr << "unexpected WHILE\n";
     exit(EXIT_FAILURE);
     break;
   case Lexeme::Type::REPEAT:
-    fprintf(stderr, "unexpected REPEAT\n");
+    std::cerr << "unexpected REPEAT\n";
     exit(EXIT_FAILURE);
     break;
   case Lexeme::Type::AGAIN:
-    fprintf(stderr, "unexpected AGAIN\n");
+    std::cerr << "unexpected AGAIN\n";
     exit(EXIT_FAILURE);
     break;
 
@@ -373,6 +372,6 @@ std::optional<Expression> parse(LexemeSource &source) {
     break;
   }
 
-  fprintf(stderr, "unexpected\n");
+  std::cerr << "unexpected\n";
   exit(EXIT_FAILURE);
 }

@@ -2,6 +2,7 @@
 #define LEXER_HH
 
 #include <cstdint>
+#include <iostream>
 #include <optional>
 #include <string>
 #include <variant>
@@ -59,6 +60,6 @@ struct Lexeme {
   std::variant<std::monostate, std::int64_t, std::string> data;
 };
 
-std::optional<Lexeme> lex(std::FILE *fin);
+std::optional<Lexeme> lex(std::istream &is);
 
 #endif // LEXER_HH

@@ -1,16 +1,15 @@
 #include "lexer.hh"
 
 #include <cctype>
-#include <cstdio>
 #include <cstdlib>
 #include <map>
 
 std::optional<std::int64_t> lexInt64(const std::string &ident);
 std::optional<Lexeme> lexString(const std::string &word);
 
-std::optional<Lexeme> lexWord(std::FILE *const fin, std::string &word);
-int lexChar(std::FILE *const fin);
-int lexEscape(std::FILE *const fin);
+std::optional<Lexeme> lexWord(std::istream &is, std::string &word);
+int lexChar(std::istream &is);
+int lexEscape(std::istream &is);
 
 std::optional<int> chToDec(int ch) {
   if ('0' <= ch && ch <= '9') {
@@ -40,11 +39,11 @@ std::optional<int> chToOct(int ch) {
   }
 }
 
-int lexEscape(std::FILE *const fin) {
-  const int ch = fgetc(fin);
+int lexEscape(std::istream &is) {
+  const int ch = is.get();
 
   if (ch == EOF) {
-    fprintf(stderr, "unexpected EOF\n");
+    std::cerr << "unexpected EOF\n";
     exit(EXIT_FAILURE);
   }
 
@@ -57,42 +56,42 @@ int lexEscape(std::FILE *const fin) {
   } else if (ch == '\b') {
     return '\b';
   } else if (const std::optional<int> &a = chToDec(ch); a) {
-    const std::optional<int> b = chToDec(fgetc(fin));
-    const std::optional<int> c = chToDec(fgetc(fin));
+    const std::optional<int> b = chToDec(is.get());
+    const std::optional<int> c = chToDec(is.get());
     if (!b || !c) {
-      fprintf(stderr, "expected decimal\n");
+      std::cerr << "expected decimal\n";
       exit(EXIT_FAILURE);
     }
     const int value = 100 * *a + 10 * *b + *c;
     if (value > 255) {
-      fprintf(stderr, "character out-of-bounds\n");
+      std::cerr << "character out-of-bounds\n";
       exit(EXIT_FAILURE);
     }
     return value;
   } else if (ch == 'x') {
-    const std::optional<int> a = chToHex(fgetc(fin));
-    const std::optional<int> b = chToHex(fgetc(fin));
+    const std::optional<int> a = chToHex(is.get());
+    const std::optional<int> b = chToHex(is.get());
     if (!a || !b) {
-      fprintf(stderr, "expected hexadecimal\n");
+      std::cerr << "expected hexadecimal\n";
       exit(EXIT_FAILURE);
     }
     const int value = 16 * *a + *b;
     if (value > 255) {
-      fprintf(stderr, "character out-of-bounds\n");
+      std::cerr << "character out-of-bounds\n";
       exit(EXIT_FAILURE);
     }
     return value;
   } else if (ch == 'o') {
-    const std::optional<int> a = chToOct(fgetc(fin));
-    const std::optional<int> b = chToOct(fgetc(fin));
-    const std::optional<int> c = chToOct(fgetc(fin));
+    const std::optional<int> a = chToOct(is.get());
+    const std::optional<int> b = chToOct(is.get());
+    const std::optional<int> c = chToOct(is.get());
     if (!a || !b || !c) {
-      fprintf(stderr, "expected octal\n");
+      std::cerr << "expected octal\n";
       exit(EXIT_FAILURE);
     }
     const int value = 64 * *a + 8 * *b + *c;
     if (value > 255) {
-      fprintf(stderr, "character out-of-bounds\n");
+      std::cerr << "character out-of-bounds\n";
       exit(EXIT_FAILURE);
     }
     return value;
@@ -101,24 +100,24 @@ int lexEscape(std::FILE *const fin) {
   }
 }
 
-int lexChar(std::FILE *const fin) {
-  const int ch = fgetc(fin);
+int lexChar(std::istream &is) {
+  const int ch = is.get();
 
   if (ch == EOF) {
-    fprintf(stderr, "unexpected EOF\n");
+    std::cerr << "unexpected EOF\n";
     exit(EXIT_FAILURE);
   }
 
   int value;
 
   if (ch == '\\') {
-    value = lexEscape(fin);
+    value = lexEscape(is);
   } else {
     value = ch;
   }
 
-  if (fgetc(fin) != '\'') {
-    fprintf(stderr, "expected single-quote\n");
+  if (is.get() != '\'') {
+    std::cerr << "expected single-quote\n";
     exit(EXIT_FAILURE);
   }
 
@@ -249,27 +248,27 @@ std::optional<Lexeme> lexString(const std::string &word) {
   }
 }
 
-std::optional<Lexeme> lexWord(std::FILE *const fin, std::string &word) {
-  const int ch = fgetc(fin);
+std::optional<Lexeme> lexWord(std::istream &is, std::string &word) {
+  const int ch = is.get();
   if (ch == EOF || std::isspace(ch)) {
     return lexString(word);
   } else {
     word.push_back(ch);
-    return lexWord(fin, word);
+    return lexWord(is, word);
   }
 }
 
-std::optional<Lexeme> lex(std::FILE *fin) {
-  const int ch = fgetc(fin);
+std::optional<Lexeme> lex(std::istream &is) {
+  const int ch = is.get();
   if (ch == EOF) {
     return {};
   } else if (std::isspace(ch)) {
-    return lex(fin);
+    return lex(is);
   } else if (ch == '\'') {
-    return Lexeme{Lexeme::Type::NUM, lexChar(fin)};
+    return Lexeme{Lexeme::Type::NUM, lexChar(is)};
   } else {
     std::string word;
     word.push_back(ch);
-    return lexWord(fin, word);
+    return lexWord(is, word);
   }
 }

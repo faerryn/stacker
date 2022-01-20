@@ -1,14 +1,12 @@
 #include "engine.hh"
 
-#include <cstdio>
-
 #include "parser.hh"
 
 void Engine::Stack::push(std::int64_t number) { data.push(number); }
 
 std::int64_t Engine::Stack::pop() {
   if (data.empty()) {
-    fprintf(stderr, "empty stack\n");
+    std::cerr << "empty stack\n";
     exit(EXIT_FAILURE);
   }
   const std::int64_t result = data.top();
@@ -24,7 +22,7 @@ void Engine::evalBody(const Expression::Body &body) {
 
 void Engine::define(const std::string &word, const Expression::Body &def) {
   if (dictionary.contains(word)) {
-    fprintf(stderr, "word already defined\n");
+    std::cerr << "word already defined\n";
     exit(EXIT_FAILURE);
   }
   dictionary[word] = def;
@@ -49,7 +47,7 @@ void Engine::eval(const Expression &expression) {
         eval(expr);
       }
     } else {
-      fprintf(stderr, "unknown word\n");
+      std::cerr << "unknown word\n";
       exit(EXIT_FAILURE);
     }
   } break;
@@ -121,10 +119,10 @@ void Engine::eval(const Expression &expression) {
     break;
 
   case Expression::Type::DOT:
-    printf("%ld ", parameterStack.pop());
+    std::cout << parameterStack.pop() << " ";
     break;
   case Expression::Type::EMIT:
-    printf("%c", char(parameterStack.pop()));
+    std::cout << char(parameterStack.pop());
     break;
 
   case Expression::Type::DUP: {
