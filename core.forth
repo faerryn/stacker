@@ -18,6 +18,9 @@
 : 2* 2 * ;
 : 2/ 2 / ;
 
+: true 0 invert ;
+: false 0 ;
+
 : ?dup dup dup 0= if drop then ;
 
 : negate invert 1+ ;
