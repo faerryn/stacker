@@ -9,26 +9,27 @@
 
 struct Lexeme {
   enum class Type {
-    NUM,
-    WORD,
+    Number,
+    Word,
+    String,
 
-    ADD,
-    SUB,
-    MUL,
-    DIV,
+    Plus,
+    Minus,
+    Times,
+    Div,
     REM,
     MOD,
 
-    GT,
-    LT,
-    EQ,
-    NEQ,
+    less,
+    more,
+    Equal,
+    ne,
 
     AND,
     OR,
     INVERT,
 
-    DOT,
+    d,
     EMIT,
 
     DUP,
@@ -37,12 +38,12 @@ struct Lexeme {
     OVER,
     ROT,
 
-    RPUT,
-    RGET,
+    ToR,
+    RFrom,
 
-    COL,
-    RECURSE,
-    SEMICOL,
+    Colon,
+    Recurse,
+    Semi,
 
     IF,
     THEN,
@@ -55,10 +56,12 @@ struct Lexeme {
     AGAIN,
 
     VARIABLE,
-    STORE,
-    FETCH,
+    Store,
+    Fetch,
+    CStore,
+    CFetch,
 
-    DEBUG,
+    DotS,
     BYE,
   } type;
   std::variant<std::monostate, std::int64_t, std::string> data;

@@ -33,26 +33,27 @@ public:
 
 struct Expression {
   enum class Type {
-    NUM,
-    WORD,
+    Number,
+    Word,
+    String,
 
-    ADD,
-    SUB,
-    MUL,
-    DIV,
+    Plus,
+    Minus,
+    Times,
+    Div,
     REM,
     MOD,
 
-    GT,
-    LT,
-    EQ,
-    NEQ,
+    more,
+    less,
+    Equal,
+    ne,
 
     AND,
     OR,
     INVERT,
 
-    DOT,
+    d,
     EMIT,
 
     DUP,
@@ -76,6 +77,8 @@ struct Expression {
     VARIABLE,
     STORE,
     FETCH,
+    CSTORE,
+    CFETCH,
 
     DEBUG,
     BYE,

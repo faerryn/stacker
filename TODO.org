@@ -3,7 +3,7 @@
 * DONE FORTH-style boolean values (TRUE = -1, FALSE = 0)
 * DONE Standard Library with things like `2dup`, `/mod`, etc...
 * DONE Determine dictionary overwriting behavior (maybe OCaml-style closures?)
-* TODO Implement strings (addr size -)
+* DONE Implement strings (addr size -)
 * DONE Eliminate use of printf
 * TODO Detect abuse of return stack
 * DONE Implement [[https://forth-standard.org/standard/core/RECURSE][RECURSE]]

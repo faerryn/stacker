@@ -40,3 +40,5 @@
 
 : spaces begin dup 0> while ' ' emit 1- repeat ;
 : cr '\n' emit ;
+
+: type begin dup 0> while swap dup c@ emit 1+ swap 1- repeat drop drop ;

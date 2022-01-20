@@ -43,10 +43,10 @@ bool int64ToBool(std::int64_t i) { return i != 0; }
 void Engine::eval(const Expression &expression) {
   switch (expression.type) {
 
-  case Expression::Type::NUM:
+  case Expression::Type::Number:
     parameterStack.push(std::get<std::int64_t>(expression.data));
     break;
-  case Expression::Type::WORD: {
+  case Expression::Type::Word: {
     const std::string &word = std::get<std::string>(expression.data);
     const auto &find = dictionary.find(word);
     if (find != dictionary.end()) {
@@ -59,23 +59,30 @@ void Engine::eval(const Expression &expression) {
       exit(EXIT_FAILURE);
     }
   } break;
+  case Expression::Type::String: {
+    const std::string &str = std::get<std::string>(expression.data);
+    std::string *newStr = new std::string(str);
+    strings.push_back(newStr);
+    parameterStack.push(reinterpret_cast<std::int64_t>(newStr->data()));
+    parameterStack.push(str.size());
+  } break;
 
-  case Expression::Type::ADD: {
+  case Expression::Type::Plus: {
     const std::int64_t b = parameterStack.pop();
     const std::int64_t a = parameterStack.pop();
     parameterStack.push(a + b);
   } break;
-  case Expression::Type::SUB: {
+  case Expression::Type::Minus: {
     const std::int64_t b = parameterStack.pop();
     const std::int64_t a = parameterStack.pop();
     parameterStack.push(a - b);
   } break;
-  case Expression::Type::MUL: {
+  case Expression::Type::Times: {
     const std::int64_t b = parameterStack.pop();
     const std::int64_t a = parameterStack.pop();
     parameterStack.push(a * b);
   } break;
-  case Expression::Type::DIV: {
+  case Expression::Type::Div: {
     const std::int64_t b = parameterStack.pop();
     const std::int64_t a = parameterStack.pop();
     parameterStack.push(a / b);
@@ -91,22 +98,22 @@ void Engine::eval(const Expression &expression) {
     parameterStack.push((a % b + b) % b);
   } break;
 
-  case Expression::Type::GT: {
+  case Expression::Type::more: {
     const std::int64_t b = parameterStack.pop();
     const std::int64_t a = parameterStack.pop();
     parameterStack.push(boolToInt64(a > b));
   } break;
-  case Expression::Type::LT: {
+  case Expression::Type::less: {
     const std::int64_t b = parameterStack.pop();
     const std::int64_t a = parameterStack.pop();
     parameterStack.push(boolToInt64(a < b));
   } break;
-  case Expression::Type::EQ: {
+  case Expression::Type::Equal: {
     const std::int64_t b = parameterStack.pop();
     const std::int64_t a = parameterStack.pop();
     parameterStack.push(boolToInt64(a == b));
   } break;
-  case Expression::Type::NEQ: {
+  case Expression::Type::ne: {
     const std::int64_t b = parameterStack.pop();
     const std::int64_t a = parameterStack.pop();
     parameterStack.push(boolToInt64(a != b));
@@ -126,7 +133,7 @@ void Engine::eval(const Expression &expression) {
     parameterStack.push(~parameterStack.pop());
     break;
 
-  case Expression::Type::DOT:
+  case Expression::Type::d:
     std::cout << parameterStack.pop() << " ";
     break;
   case Expression::Type::EMIT:
@@ -214,21 +221,31 @@ void Engine::eval(const Expression &expression) {
   } break;
 
   case Expression::Type::VARIABLE: {
-    std::int64_t *const ptr = new std::int64_t;
-    variables.push_back(ptr);
+    std::int64_t *const addr = new std::int64_t;
+    variables.push_back(addr);
     const std::string &word = std::get<std::string>(expression.data);
     define(word,
-           {{Expression::Type::NUM, reinterpret_cast<std::int64_t>(ptr)}});
+           {{Expression::Type::Number, reinterpret_cast<std::int64_t>(addr)}});
   } break;
   case Expression::Type::STORE: {
     const std::int64_t b = parameterStack.pop();
     const std::int64_t a = parameterStack.pop();
     *reinterpret_cast<std::int64_t *>(b) = a;
   } break;
-  case Expression::Type::FETCH:
-    parameterStack.push(
-        *reinterpret_cast<std::int64_t *>(parameterStack.pop()));
-    break;
+  case Expression::Type::FETCH: {
+    const std::int64_t *addr =
+        reinterpret_cast<std::int64_t *>(parameterStack.pop());
+    parameterStack.push(*addr);
+  } break;
+  case Expression::Type::CSTORE: {
+    const std::int64_t b = parameterStack.pop();
+    const std::int64_t a = parameterStack.pop();
+    *reinterpret_cast<char *>(b) = char(a);
+  } break;
+  case Expression::Type::CFETCH: {
+    const char *addr = reinterpret_cast<char *>(parameterStack.pop());
+    parameterStack.push(*addr);
+  } break;
 
   case Expression::Type::DEBUG:
     parameterStack.debug();
@@ -240,7 +257,10 @@ void Engine::eval(const Expression &expression) {
 }
 
 Engine::~Engine() {
-  for (std::int64_t *const ptr : variables) {
-    delete ptr;
+  for (const std::int64_t *addr : variables) {
+    delete addr;
+  }
+  for (const std::string *pair : strings) {
+    delete pair;
   }
 }
