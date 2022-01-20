@@ -24,11 +24,9 @@ private:
   std::variant<std::monostate, std::istream *, Collection> data;
 
 public:
-  LexemeSource() : type(Type::NONE), data({}) {}
-  LexemeSource(std::istream *is) : type(Type::FILE), data(is) {}
-  template <typename Iterator>
-  LexemeSource(Iterator begin, Iterator end)
-      : type(Type::COLLECTION), data(Collection{{begin, end}, 0}) {}
+  LexemeSource() = delete;
+  LexemeSource(std::istream *is);
+  LexemeSource(const std::vector<Lexeme> &lexemes);
 
   std::optional<Lexeme> get();
 };

@@ -3,22 +3,9 @@
 #include <cstdlib>
 #include <vector>
 
-std::optional<Expression> parseDefWord(LexemeSource &source);
-std::optional<Expression> parseDefBody(LexemeSource &source,
-                                       const std::string &word,
-                                       std::vector<Lexeme> &body);
-std::optional<Expression> parseIf(LexemeSource &source,
-                                  std::vector<Lexeme> &body);
-std::optional<Expression> parseIfElse(LexemeSource &source,
-                                      const Expression::Body &ifBody,
-                                      std::vector<Lexeme> &body);
-std::optional<Expression> parseBegin(LexemeSource &source,
-                                     std::vector<Lexeme> &body);
-std::optional<Expression> parseBeginWhile(LexemeSource &source,
-                                          const Expression::Body &cond,
-                                          std::vector<Lexeme> &body);
-std::optional<Expression> parseVariable(LexemeSource &source);
-std::vector<Expression> parseAll(LexemeSource &source);
+LexemeSource::  LexemeSource(std::istream *is) : type(Type::FILE), data(is) {}
+LexemeSource::  LexemeSource(const std::vector<Lexeme> &lexemes)
+      : type(Type::COLLECTION), data(Collection{lexemes, 0}) {}
 
 std::optional<Lexeme> LexemeSource::get() {
   switch (type) {
@@ -43,6 +30,23 @@ std::optional<Lexeme> LexemeSource::get() {
   std::cerr << "unexpected\n";
   exit(EXIT_FAILURE);
 }
+
+std::optional<Expression> parseDefWord(LexemeSource &source);
+std::optional<Expression> parseDefBody(LexemeSource &source,
+                                       const std::string &word,
+                                       std::vector<Lexeme> &body);
+std::optional<Expression> parseIf(LexemeSource &source,
+                                  std::vector<Lexeme> &body);
+std::optional<Expression> parseIfElse(LexemeSource &source,
+                                      const Expression::Body &ifBody,
+                                      std::vector<Lexeme> &body);
+std::optional<Expression> parseBegin(LexemeSource &source,
+                                     std::vector<Lexeme> &body);
+std::optional<Expression> parseBeginWhile(LexemeSource &source,
+                                          const Expression::Body &cond,
+                                          std::vector<Lexeme> &body);
+std::optional<Expression> parseVariable(LexemeSource &source);
+std::vector<Expression> parseAll(LexemeSource &source);
 
 Expression::Body parseAll(LexemeSource &source) {
   Expression::Body body;
@@ -83,7 +87,7 @@ std::optional<Expression> parseBeginWhile(LexemeSource &source,
 
   switch (lexeme->type) {
   case Lexeme::Type::REPEAT: {
-    LexemeSource bodySource{body.begin(), body.end()};
+    LexemeSource bodySource{body};
     return Expression{Expression::Type::BEGIN_WHILE,
                       Expression::BeginWhile{cond, parseAll(bodySource)}};
   } break;
@@ -107,16 +111,16 @@ std::optional<Expression> parseBegin(LexemeSource &source,
 
   switch (lexeme->type) {
   case Lexeme::Type::UNTIL: {
-    LexemeSource bodySource{body.begin(), body.end()};
+    LexemeSource bodySource{body};
     return Expression{Expression::Type::BEGIN, parseAll(bodySource)};
   } break;
   case Lexeme::Type::WHILE: {
-    LexemeSource condSource{body.begin(), body.end()};
+    LexemeSource condSource{body};
     std::vector<Lexeme> whileBody;
     return parseBeginWhile(source, parseAll(condSource), whileBody);
   } break;
   case Lexeme::Type::AGAIN: {
-    LexemeSource bodySource{body.begin(), body.end()};
+    LexemeSource bodySource{body};
     return Expression{Expression::Type::BEGIN_AGAIN, parseAll(bodySource)};
   } break;
   default:
@@ -140,7 +144,7 @@ std::optional<Expression> parseIfElse(LexemeSource &source,
 
   switch (lexeme->type) {
   case Lexeme::Type::THEN: {
-    LexemeSource bodySource{body.begin(), body.end()};
+    LexemeSource bodySource{body};
     return Expression{Expression::Type::IF_ELSE,
                       Expression::IfElse{ifBody, parseAll(bodySource)}};
   } break;
@@ -164,11 +168,11 @@ std::optional<Expression> parseIf(LexemeSource &source,
 
   switch (lexeme->type) {
   case Lexeme::Type::THEN: {
-    LexemeSource bodySource{body.begin(), body.end()};
+    LexemeSource bodySource{body};
     return Expression{Expression::Type::IF, parseAll(bodySource)};
   } break;
   case Lexeme::Type::ELSE: {
-    LexemeSource bodySource{body.begin(), body.end()};
+    LexemeSource bodySource{body};
     std::vector<Lexeme> elseBody;
     return parseIfElse(source, parseAll(bodySource), elseBody);
   }
@@ -193,7 +197,7 @@ std::optional<Expression> parseDefBody(LexemeSource &source,
 
   switch (lexeme->type) {
   case Lexeme::Type::SEMICOL: {
-    LexemeSource bodySource{body.begin(), body.end()};
+    LexemeSource bodySource{body};
     return Expression{Expression::Type::DEF,
                       Expression::Def{word, parseAll(bodySource)}};
   } break;
