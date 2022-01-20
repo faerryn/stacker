@@ -20,16 +20,17 @@
 
 : ?dup dup dup 0= if drop then ;
 
-: negate 0 - ;
+: negate invert 1+ ;
 : abs dup 0 < if negate then ;
 : min 2dup > if swap then drop ;
 : max 2dup < if swap then drop ;
 
-: /rem 2dup / 2swap rem ;
-: /mod 2dup / 2swap mod ;
+: /rem 2dup / -rot rem ;
+: /mod 2dup / -rot mod ;
 
-: */ -rot * / ;
-: */mod -rot * /mod ;
+: */ -rot * swap / ;
+: */rem -rot * swap /rem ;
+: */mod -rot * swap /mod ;
 
 : ? @ . ;
 : +! tuck @ + ! ;
