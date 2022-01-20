@@ -3,9 +3,9 @@
 #include <cstdlib>
 #include <vector>
 
-LexemeSource::  LexemeSource(std::istream *is) : type(Type::FILE), data(is) {}
-LexemeSource::  LexemeSource(const std::vector<Lexeme> &lexemes)
-      : type(Type::COLLECTION), data(Collection{lexemes, 0}) {}
+LexemeSource::LexemeSource(std::istream *is) : type(Type::FILE), data(is) {}
+LexemeSource::LexemeSource(const std::vector<Lexeme> &lexemes)
+    : type(Type::COLLECTION), data(Collection{lexemes, 0}) {}
 
 std::optional<Lexeme> LexemeSource::get() {
   switch (type) {
