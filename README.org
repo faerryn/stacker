@@ -11,7 +11,7 @@ Currently, STACKER implements the following:
 - Data
   - int64
   - char8 (single-quoted with basic escape sequences)
-  - string (double-quoted)
+  - string (double-quoted dynamically allocated)
 - Arithmetic Operators
   - +
   - -
@@ -46,6 +46,8 @@ Currently, STACKER implements the following:
   - @
   - c!
   - c@
+  - alloc (malloc)
+  - free (free)
 - Optional
   - .s
   - bye

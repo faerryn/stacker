@@ -7,4 +7,4 @@
 * DONE Eliminate use of printf
 * TODO Detect abuse of return stack
 * DONE Implement [[https://forth-standard.org/standard/core/RECURSE][RECURSE]]
-* TODO Word to free strings
+* DONE Word to free strings

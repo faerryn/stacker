@@ -13,15 +13,14 @@
 class LexemeSource {
 private:
   enum class Type {
-    NONE,
-    FILE,
-    COLLECTION,
+    Stream,
+    Collection,
   } type;
   struct Collection {
     std::vector<Lexeme> lexemes;
     size_t index;
   };
-  std::variant<std::monostate, std::istream *, Collection> data;
+  std::variant<std::istream *, Collection> data;
 
 public:
   LexemeSource() = delete;
@@ -64,22 +63,24 @@ struct Expression {
     ToR,
     RFrom,
 
-    DEF,
+    Define,
 
-    IF,
-    IF_ELSE,
+    IfThen,
+    IfElseThen,
 
-    BEGIN,
-    BEGIN_WHILE,
-    BEGIN_AGAIN,
+    BeginUntil,
+    BeginWhileRepeat,
+    BeginAgain,
 
-    STORE,
-    FETCH,
-    CSTORE,
-    CFETCH,
+    Store,
+    Fetch,
+    CStore,
+    CFetch,
+    Alloc,
+    Free,
 
-    DEBUG,
-    BYE,
+    DotS,
+    Bye,
   } type;
   using Body = std::vector<Expression>;
   struct Def {

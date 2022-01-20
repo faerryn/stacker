@@ -2,6 +2,7 @@
 
 #include "parser.hh"
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 
 void Engine::Stack::push(std::int64_t number) { data.push_back(number); }
@@ -62,9 +63,10 @@ void Engine::eval(const Expression &expression) {
   } break;
   case Expression::Type::String: {
     const std::string &str = std::get<std::string>(expression.data);
-    std::string *newStr = new std::string(str);
-    strings.push_back(newStr);
-    parameterStack.push(reinterpret_cast<std::int64_t>(newStr->data()));
+    std::uint8_t *const addr = new std::uint8_t[str.size()];
+    allocs.insert(addr);
+    std::memcpy(addr, str.data(), str.size());
+    parameterStack.push(reinterpret_cast<std::int64_t>(addr));
     parameterStack.push(str.size());
   } break;
 
@@ -175,18 +177,18 @@ void Engine::eval(const Expression &expression) {
     parameterStack.push(returnStack.pop());
     break;
 
-  case Expression::Type::DEF: {
+  case Expression::Type::Define: {
     const Expression::Def &def = std::get<Expression::Def>(expression.data);
     define(def.word, def.body);
   } break;
 
-  case Expression::Type::IF: {
+  case Expression::Type::IfThen: {
     const Expression::Body &body = std::get<Expression::Body>(expression.data);
     if (int64ToBool(parameterStack.pop())) {
       evalBody(body);
     }
   } break;
-  case Expression::Type::IF_ELSE: {
+  case Expression::Type::IfElseThen: {
     const Expression::IfElse &ifElse =
         std::get<Expression::IfElse>(expression.data);
     if (int64ToBool(parameterStack.pop())) {
@@ -196,13 +198,13 @@ void Engine::eval(const Expression &expression) {
     }
   } break;
 
-  case Expression::Type::BEGIN: {
+  case Expression::Type::BeginUntil: {
     const Expression::Body &body = std::get<Expression::Body>(expression.data);
     do {
       evalBody(body);
     } while (!int64ToBool(parameterStack.pop()));
   } break;
-  case Expression::Type::BEGIN_WHILE: {
+  case Expression::Type::BeginWhileRepeat: {
     const Expression::BeginWhile &beginWhile =
         std::get<Expression::BeginWhile>(expression.data);
     evalBody(beginWhile.condBody);
@@ -211,44 +213,54 @@ void Engine::eval(const Expression &expression) {
       evalBody(beginWhile.condBody);
     }
   } break;
-  case Expression::Type::BEGIN_AGAIN: {
+  case Expression::Type::BeginAgain: {
     const Expression::Body &body = std::get<Expression::Body>(expression.data);
     while (true) {
       evalBody(body);
     }
   } break;
 
-  case Expression::Type::STORE: {
+  case Expression::Type::Store: {
     const std::int64_t b = parameterStack.pop();
     const std::int64_t a = parameterStack.pop();
     *reinterpret_cast<std::int64_t *>(b) = a;
   } break;
-  case Expression::Type::FETCH: {
-    const std::int64_t *addr =
-        reinterpret_cast<std::int64_t *>(parameterStack.pop());
-    parameterStack.push(*addr);
-  } break;
-  case Expression::Type::CSTORE: {
+  case Expression::Type::Fetch:
+    parameterStack.push(
+        *reinterpret_cast<std::int64_t *>(parameterStack.pop()));
+    break;
+  case Expression::Type::CStore: {
     const std::int64_t b = parameterStack.pop();
     const std::int64_t a = parameterStack.pop();
     *reinterpret_cast<char *>(b) = char(a);
   } break;
-  case Expression::Type::CFETCH: {
-    const char *addr = reinterpret_cast<char *>(parameterStack.pop());
-    parameterStack.push(*addr);
+  case Expression::Type::CFetch:
+    parameterStack.push(*reinterpret_cast<char *>(parameterStack.pop()));
+    break;
+  case Expression::Type::Alloc: {
+    std::uint8_t *const addr = new std::uint8_t[parameterStack.pop()];
+    allocs.insert(addr);
+    parameterStack.push(reinterpret_cast<std::int64_t>(addr));
+  } break;
+  case Expression::Type::Free: {
+    std::uint8_t *const addr =
+        reinterpret_cast<std::uint8_t *>(parameterStack.pop());
+    allocs.erase(addr);
+    delete[] addr;
   } break;
 
-  case Expression::Type::DEBUG:
+  case Expression::Type::DotS:
     parameterStack.debug();
     break;
-  case Expression::Type::BYE:
+  case Expression::Type::Bye:
     exit(EXIT_SUCCESS);
     break;
   }
 }
 
 Engine::~Engine() {
-  for (const std::string *pair : strings) {
-    delete pair;
+  for (const std::uint8_t *addr : allocs) {
+    std::cerr << "free " << reinterpret_cast<std::int64_t>(addr) << "\n";
+    delete[] addr;
   }
 }

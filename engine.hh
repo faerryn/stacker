@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <set>
 
 #include "parser.hh"
 
@@ -22,7 +23,7 @@ private:
   Stack parameterStack;
   Stack returnStack;
   std::map<std::string, Expression::Body> dictionary;
-  std::vector<std::string *> strings;
+  std::set<std::uint8_t *> allocs;
 
   void evalBody(const Expression::Body &body);
   void define(const std::string &word, const Expression::Body &def);

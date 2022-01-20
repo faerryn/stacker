@@ -15,19 +15,16 @@ Expression parseBeginWhile(LexemeSource &source, const Expression::Body &cond,
 Expression parseVariable(LexemeSource &source);
 std::vector<Expression> parseAll(LexemeSource &source);
 
-LexemeSource::LexemeSource(std::istream *is) : type(Type::FILE), data(is) {}
+LexemeSource::LexemeSource(std::istream *is) : type(Type::Stream), data(is) {}
 LexemeSource::LexemeSource(const std::vector<Lexeme> &lexemes)
-    : type(Type::COLLECTION), data(Collection{lexemes, 0}) {}
+    : type(Type::Collection), data(Collection{lexemes, 0}) {}
 
 std::optional<Lexeme> LexemeSource::get() {
   switch (type) {
-  case Type::NONE:
-    return {};
-    break;
-  case Type::FILE:
+  case Type::Stream:
     return lex(*std::get<std::istream *>(data));
     break;
-  case Type::COLLECTION: {
+  case Type::Collection: {
     Collection &collection = std::get<Collection>(data);
     if (collection.index < collection.lexemes.size()) {
       ++collection.index;
@@ -62,7 +59,7 @@ Expression parseBeginWhile(LexemeSource &source, const Expression::Body &cond,
   switch (lexeme->type) {
   case Lexeme::Type::Repeat: {
     LexemeSource bodySource{body};
-    return Expression{Expression::Type::BEGIN_WHILE,
+    return Expression{Expression::Type::BeginWhileRepeat,
                       Expression::BeginWhile{cond, parseAll(bodySource)}};
   } break;
   default: {
@@ -85,7 +82,7 @@ Expression parseBegin(LexemeSource &source, std::vector<Lexeme> &body) {
   switch (lexeme->type) {
   case Lexeme::Type::Until: {
     LexemeSource bodySource{body};
-    return Expression{Expression::Type::BEGIN, parseAll(bodySource)};
+    return Expression{Expression::Type::BeginUntil, parseAll(bodySource)};
   } break;
   case Lexeme::Type::While: {
     LexemeSource condSource{body};
@@ -94,7 +91,7 @@ Expression parseBegin(LexemeSource &source, std::vector<Lexeme> &body) {
   } break;
   case Lexeme::Type::Again: {
     LexemeSource bodySource{body};
-    return Expression{Expression::Type::BEGIN_AGAIN, parseAll(bodySource)};
+    return Expression{Expression::Type::BeginAgain, parseAll(bodySource)};
   } break;
   default:
     body.push_back(*lexeme);
@@ -117,7 +114,7 @@ Expression parseIfElse(LexemeSource &source, const Expression::Body &ifBody,
   switch (lexeme->type) {
   case Lexeme::Type::Then: {
     LexemeSource bodySource{body};
-    return Expression{Expression::Type::IF_ELSE,
+    return Expression{Expression::Type::IfElseThen,
                       Expression::IfElse{ifBody, parseAll(bodySource)}};
   } break;
   default: {
@@ -140,7 +137,7 @@ Expression parseIf(LexemeSource &source, std::vector<Lexeme> &body) {
   switch (lexeme->type) {
   case Lexeme::Type::Then: {
     LexemeSource bodySource{body};
-    return Expression{Expression::Type::IF, parseAll(bodySource)};
+    return Expression{Expression::Type::IfThen, parseAll(bodySource)};
   } break;
   case Lexeme::Type::Else: {
     LexemeSource bodySource{body};
@@ -168,7 +165,7 @@ Expression parseDefBody(LexemeSource &source, const std::string &word,
   switch (lexeme->type) {
   case Lexeme::Type::Semi: {
     LexemeSource bodySource{body};
-    return Expression{Expression::Type::DEF,
+    return Expression{Expression::Type::Define,
                       Expression::Def{word, parseAll(bodySource)}};
   } break;
   case Lexeme::Type::Col:
@@ -349,28 +346,29 @@ std::optional<Expression> parse(LexemeSource &source) {
     break;
 
   case Lexeme::Type::Store:
-    return Expression{Expression::Type::STORE, {}};
+    return Expression{Expression::Type::Store, {}};
     break;
   case Lexeme::Type::Fetch:
-    return Expression{Expression::Type::FETCH, {}};
+    return Expression{Expression::Type::Fetch, {}};
     break;
   case Lexeme::Type::CStore:
-    return Expression{Expression::Type::CSTORE, {}};
+    return Expression{Expression::Type::CStore, {}};
     break;
   case Lexeme::Type::CFetch:
-    return Expression{Expression::Type::CFETCH, {}};
+    return Expression{Expression::Type::CFetch, {}};
     break;
   case Lexeme::Type::Alloc:
+    return Expression{Expression::Type::Alloc, {}};
+    break;
   case Lexeme::Type::Free:
-    std::cerr << "TODO\n";
-    exit(EXIT_FAILURE);
+    return Expression{Expression::Type::Free, {}};
     break;
 
   case Lexeme::Type::DotS:
-    return Expression{Expression::Type::DEBUG, {}};
+    return Expression{Expression::Type::DotS, {}};
     break;
   case Lexeme::Type::Bye:
-    return Expression{Expression::Type::BYE, {}};
+    return Expression{Expression::Type::Bye, {}};
     break;
   }
 
