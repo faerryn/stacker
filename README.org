@@ -44,5 +44,6 @@ Currently, STACKER implements the following:
   - variable
   - !
   - @
-- .s
-- bye
+- Optional
+  - .s
+  - bye

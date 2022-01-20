@@ -58,7 +58,6 @@ struct Lexeme {
     FETCH,
 
     DEBUG,
-
     BYE,
   } type;
   std::variant<std::monostate, std::int64_t, std::string> data;

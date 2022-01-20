@@ -368,7 +368,6 @@ std::optional<Expression> parse(LexemeSource &source) {
   case Lexeme::Type::DEBUG:
     return Expression{Expression::Type::DEBUG, {}};
     break;
-
   case Lexeme::Type::BYE:
     return Expression{Expression::Type::BYE, {}};
     break;

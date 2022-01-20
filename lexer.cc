@@ -256,7 +256,6 @@ Lexeme lexWordDone(const std::string &word) {
 
   } else if (word == ".s") {
     return Lexeme{Lexeme::Type::DEBUG, {}};
-
   } else if (word == "bye") {
     return Lexeme{Lexeme::Type::BYE, {}};
 

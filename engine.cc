@@ -230,7 +230,6 @@ void Engine::eval(const Expression &expression) {
   case Expression::Type::DEBUG:
     parameterStack.debug();
     break;
-
   case Expression::Type::BYE:
     exit(EXIT_SUCCESS);
     break;
