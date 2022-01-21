@@ -299,7 +299,6 @@ void Compiler::compileExpression(const Expression &expression,
                 << ": word already defined: " << wordDefinition.word << "\n";
     }
     dictionary[wordDefinition.word] = nextDictionaryName;
-    ++nextDictionaryName;
 
     std::string definition = "// Define " + wordDefinition.word +
                              "\n"
@@ -310,6 +309,8 @@ void Compiler::compileExpression(const Expression &expression,
     dictionary[wordDefinition.word] = nextDictionaryName;
     declarationSection += declaration;
     definitionSection += definition;
+
+    ++nextDictionaryName;
   } break;
 
   case Expression::Type::IfThen: {
