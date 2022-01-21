@@ -56,7 +56,7 @@ if
   64
   dup alloc swap 2dup space fill
   dup alloc swap 2dup space fill
-  2dup + 2 - star swap c!
+  2dup + 1 - star swap c!
   rot swap
 
   3dup
