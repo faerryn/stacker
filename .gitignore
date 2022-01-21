@@ -1,9 +1,12 @@
 *.o
 *.d
-/stacker
+*.out
 
-/.cache/
-/compile_commands.json
+/stacker
 
 *.forth.cc
 *.forth.out
+
+/.cache/
+/compile_commands.json
+/vgcore.*

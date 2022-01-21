@@ -4,21 +4,22 @@
 #include <fstream>
 #include <iostream>
 
-#include "engine.hh"
 #include "compiler.hh"
+#include "engine.hh"
 
 Engine engine;
 Compiler compiler;
 
-void evalFile(const std::filesystem::path &path) {
+bool evalFile(const std::filesystem::path &path) {
   std::ifstream file{path};
   if (!file.is_open()) {
     std::cerr << __FILE__ << ":" << __LINE__ << path
               << ": : No such file or directory\n";
     exit(EXIT_FAILURE);
   }
-  engine.eval(file);
+  const bool flag = engine.eval(file);
   file.close();
+  return flag;
 }
 
 void compileFile(const std::filesystem::path &path) {
@@ -34,23 +35,35 @@ void compileFile(const std::filesystem::path &path) {
 }
 
 int main(int argc, char **argv) {
-  std::filesystem::path selfPath{argv[0]};
-  std::filesystem::path corePath = selfPath.replace_filename("core.forth");
-  evalFile(corePath);
+  const std::filesystem::path selfPath{argv[0]};
+  std::filesystem::path corePath = selfPath;
+  corePath.replace_filename("core.forth");
 
-  if (argc >= 2) {
-    std::filesystem::path sourcePath{argv[1]};
+  if (argc >= 3) {
+    const std::filesystem::path sourcePath{argv[2]};
+    if (std::strcmp(argv[1], "interp") == 0) {
+      evalFile(corePath);
+      const bool flag = evalFile(sourcePath);
+      if (flag) {
+        engine.eval(std::cin);
+      }
+    } else if (std::strcmp(argv[1], "comp") == 0) {
+      compileFile(corePath);
+      compileFile(argv[2]);
 
-    evalFile(sourcePath);
-    compileFile(corePath);
-    compileFile(argv[1]);
+      std::filesystem::path ccPath = sourcePath;
+      ccPath.concat(".cc");
 
-    std::filesystem::path destinationPath = sourcePath.concat(".cc");
-    std::ofstream destination(destinationPath);
-    compiler.write(destination);
-    destination.close();
-  } else {
+      std::ofstream destination(ccPath);
+      compiler.write(destination);
+      destination.close();
+    }
+  } else if (argc == 1) {
+    evalFile(corePath);
     engine.eval(std::cin);
+  } else {
+    std::cerr << "unknown command " << argv[1] << "\n";
+    exit(EXIT_FAILURE);
   }
 
   return EXIT_SUCCESS;

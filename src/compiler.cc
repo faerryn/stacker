@@ -68,7 +68,7 @@ void Compiler::compileExpression(const Expression &expression,
                    "const std::int64_t b = parameterStack.pop();\n"
                    "const std::int64_t a = parameterStack.pop();\n"
                    "parameterStack.push(a + b);\n"
-                   "}";
+                   "}\n";
     break;
   case Expression::Type::Sub:
     destination += "// Sub\n"
@@ -76,7 +76,7 @@ void Compiler::compileExpression(const Expression &expression,
                    "const std::int64_t b = parameterStack.pop();\n"
                    "const std::int64_t a = parameterStack.pop();\n"
                    "parameterStack.push(a - b);\n"
-                   "}";
+                   "}\n";
     break;
   case Expression::Type::Mul:
     destination += "// Mul\n"
@@ -84,7 +84,7 @@ void Compiler::compileExpression(const Expression &expression,
                    "const std::int64_t b = parameterStack.pop();\n"
                    "const std::int64_t a = parameterStack.pop();\n"
                    "parameterStack.push(a * b);\n"
-                   "}";
+                   "}\n";
     break;
   case Expression::Type::Div:
     destination += "// Div\n"
@@ -92,7 +92,7 @@ void Compiler::compileExpression(const Expression &expression,
                    "const std::int64_t b = parameterStack.pop();\n"
                    "const std::int64_t a = parameterStack.pop();\n"
                    "parameterStack.push(a / b);\n"
-                   "}";
+                   "}\n";
     break;
   case Expression::Type::Rem:
     destination += "// Rem\n"
@@ -100,7 +100,7 @@ void Compiler::compileExpression(const Expression &expression,
                    "const std::int64_t b = parameterStack.pop();\n"
                    "const std::int64_t a = parameterStack.pop();\n"
                    "parameterStack.push(a % b);\n"
-                   "}";
+                   "}\n";
     break;
   case Expression::Type::Mod:
     destination += "// Mod\n"
@@ -108,7 +108,7 @@ void Compiler::compileExpression(const Expression &expression,
                    "const std::int64_t b = parameterStack.pop();\n"
                    "const std::int64_t a = parameterStack.pop();\n"
                    "parameterStack.push((a % b + b) % b);\n"
-                   "}";
+                   "}\n";
     break;
 
   case Expression::Type::More:
@@ -117,7 +117,7 @@ void Compiler::compileExpression(const Expression &expression,
                    "const std::int64_t b = parameterStack.pop();\n"
                    "const std::int64_t a = parameterStack.pop();\n"
                    "parameterStack.push(boolToInt64(a > b));\n"
-                   "}";
+                   "}\n";
     break;
   case Expression::Type::Less:
     destination += "// Less\n"
@@ -125,7 +125,7 @@ void Compiler::compileExpression(const Expression &expression,
                    "const std::int64_t b = parameterStack.pop();\n"
                    "const std::int64_t a = parameterStack.pop();\n"
                    "parameterStack.push(boolToInt64(a < b));\n"
-                   "}";
+                   "}\n";
     break;
   case Expression::Type::Equal:
     destination += "// Equals\n"
@@ -133,7 +133,7 @@ void Compiler::compileExpression(const Expression &expression,
                    "const std::int64_t b = parameterStack.pop();\n"
                    "const std::int64_t a = parameterStack.pop();\n"
                    "parameterStack.push(boolToInt64(a == b));\n"
-                   "}";
+                   "}\n";
     break;
   case Expression::Type::NotEqual:
     destination += "// NotEquals\n"
@@ -141,7 +141,7 @@ void Compiler::compileExpression(const Expression &expression,
                    "const std::int64_t b = parameterStack.pop();\n"
                    "const std::int64_t a = parameterStack.pop();\n"
                    "parameterStack.push(boolToInt64(a != b));\n"
-                   "}";
+                   "}\n";
     break;
 
   case Expression::Type::And:
@@ -150,7 +150,7 @@ void Compiler::compileExpression(const Expression &expression,
                    "const std::int64_t b = parameterStack.pop();\n"
                    "const std::int64_t a = parameterStack.pop();\n"
                    "parameterStack.push(a & b);\n"
-                   "}";
+                   "}\n";
     break;
   case Expression::Type::Or:
     destination += "// Or\n"
@@ -158,7 +158,7 @@ void Compiler::compileExpression(const Expression &expression,
                    "const std::int64_t b = parameterStack.pop();\n"
                    "const std::int64_t a = parameterStack.pop();\n"
                    "parameterStack.push(a | b);\n"
-                   "}";
+                   "}\n";
     break;
   case Expression::Type::Inv:
     destination += "// Inverse\n"
@@ -171,7 +171,7 @@ void Compiler::compileExpression(const Expression &expression,
     break;
   case Expression::Type::Key:
     destination += "// Key\n"
-                   "parameterStack.push(std::cin.get());";
+                   "parameterStack.push(std::cin.get());\n";
     break;
 
   case Expression::Type::Dup:
@@ -258,8 +258,9 @@ void Compiler::compileExpression(const Expression &expression,
     break;
   case Expression::Type::CFetch:
     destination += "// CFetch\n"
-                   "parameterStack.push(*reinterpret_cast<char "
-                   "*>(parameterStack.pop()));\n";
+                   "parameterStack.push(*reinterpret_cast<char *>("
+                   "parameterStack.pop()"
+                   "));\n";
     break;
   case Expression::Type::Alloc:
     destination +=
@@ -289,7 +290,7 @@ void Compiler::compileExpression(const Expression &expression,
   case Expression::Type::Define: {
     const Expression::WordDefinition &wordDefinition =
         std::get<Expression::WordDefinition>(expression.data);
-    std::string declaration = "// Define " + wordDefinition.word +
+    std::string declaration = "// Declare " + wordDefinition.word +
                               "\n"
                               "void word_" +
                               std::to_string(nextDictionaryName) + "();\n";
