@@ -81,6 +81,6 @@ struct Expression {
       data;
 };
 
-std::optional<Expression> parse(std::istream &is);
+std::optional<Expression> parse(std::istream &source);
 
 #endif // PARSER_HH

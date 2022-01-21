@@ -48,8 +48,8 @@ void Engine::define(const std::string &word,
   dictionary[word] = def;
 }
 
-void Engine::eval(std::istream &is) {
-  const std::optional<Expression> &expression = parse(is);
+void Engine::eval(std::istream &source) {
+  const std::optional<Expression> &expression = parse(source);
   if (expression) {
     evalExpression(*expression);
   }

@@ -9,18 +9,18 @@ bool isDec(int ch);
 std::int64_t toDec(int ch);
 bool isSpace(int ch);
 
-Lexeme lexNum(std::istream &is, std::string &word, std::int64_t sign,
+Lexeme lexNum(std::istream &source, std::string &word, std::int64_t sign,
               std::int64_t mag);
-Lexeme lexSign(std::istream &is, std::string &word, std::int64_t sign);
+Lexeme lexSign(std::istream &source, std::string &word, std::int64_t sign);
 
-char lexEscape(std::istream &is);
-Lexeme lexChar(std::istream &is);
-Lexeme lexStr(std::istream &is, std::string &str);
+char lexEscape(std::istream &source);
+Lexeme lexChar(std::istream &source);
+Lexeme lexStr(std::istream &source, std::string &str);
 
 Lexeme lexWordDone(const std::string &word);
-Lexeme lexWord(std::istream &is, std::string &word);
+Lexeme lexWord(std::istream &source, std::string &word);
 
-Lexeme lexChar(int ch, std::istream &is);
+Lexeme lexChar(int ch, std::istream &source);
 
 bool isSpace(int ch) {
   return ch == EOF || ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t';
@@ -29,8 +29,8 @@ bool isSpace(int ch) {
 bool isDec(int ch) { return '0' <= ch && ch <= '9'; }
 std::int64_t toDec(int ch) { return ch - '0'; }
 
-char lexEscape(std::istream &is) {
-  const int ch = is.get();
+char lexEscape(std::istream &source) {
+  const int ch = source.get();
 
   if (ch == EOF) {
     std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected EOF\n";
@@ -50,8 +50,8 @@ char lexEscape(std::istream &is) {
   }
 }
 
-Lexeme lexChar(std::istream &is) {
-  const int ch = is.get();
+Lexeme lexChar(std::istream &source) {
+  const int ch = source.get();
 
   if (ch == EOF) {
     std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected EOF\n";
@@ -61,12 +61,12 @@ Lexeme lexChar(std::istream &is) {
   char value;
 
   if (ch == '\\') {
-    value = lexEscape(is);
+    value = lexEscape(source);
   } else {
     value = ch;
   }
 
-  if (is.get() != '\'') {
+  if (source.get() != '\'') {
     std::cerr << __FILE__ << ":" << __LINE__ << ": expected single-quote\n";
     exit(EXIT_FAILURE);
   }
@@ -74,8 +74,8 @@ Lexeme lexChar(std::istream &is) {
   return Lexeme{Lexeme::Type::Number, value};
 }
 
-Lexeme lexStr(std::istream &is, std::string &str) {
-  const int ch = is.get();
+Lexeme lexStr(std::istream &source, std::string &str) {
+  const int ch = source.get();
 
   if (ch == EOF) {
     std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected EOF\n";
@@ -89,19 +89,19 @@ Lexeme lexStr(std::istream &is, std::string &str) {
   char value;
 
   if (ch == '\\') {
-    value = lexEscape(is);
+    value = lexEscape(source);
   } else {
     value = ch;
   }
 
   str.push_back(value);
 
-  return lexStr(is, str);
+  return lexStr(source, str);
 }
 
-Lexeme lexNum(std::istream &is, std::string &word, std::int64_t sign,
+Lexeme lexNum(std::istream &source, std::string &word, std::int64_t sign,
               std::int64_t mag) {
-  const int ch = is.get();
+  const int ch = source.get();
 
   if (isSpace(ch)) {
     return Lexeme{Lexeme::Type::Number, sign * mag};
@@ -112,14 +112,14 @@ Lexeme lexNum(std::istream &is, std::string &word, std::int64_t sign,
   if (isDec(ch)) {
     mag *= 10;
     mag += toDec(ch);
-    return lexNum(is, word, sign, mag);
+    return lexNum(source, word, sign, mag);
   } else {
-    return lexWord(is, word);
+    return lexWord(source, word);
   }
 }
 
-Lexeme lexSign(std::istream &is, std::string &word, std::int64_t sign) {
-  const int ch = is.get();
+Lexeme lexSign(std::istream &source, std::string &word, std::int64_t sign) {
+  const int ch = source.get();
 
   if (isSpace(ch)) {
     return lexWordDone(word);
@@ -128,9 +128,9 @@ Lexeme lexSign(std::istream &is, std::string &word, std::int64_t sign) {
   word.push_back(ch);
 
   if (isDec(ch)) {
-    return lexNum(is, word, sign, toDec(ch));
+    return lexNum(source, word, sign, toDec(ch));
   } else {
-    return lexWord(is, word);
+    return lexWord(source, word);
   }
 }
 
@@ -233,45 +233,45 @@ Lexeme lexWordDone(const std::string &word) {
   }
 }
 
-Lexeme lexWord(std::istream &is, std::string &word) {
-  const int ch = is.get();
+Lexeme lexWord(std::istream &source, std::string &word) {
+  const int ch = source.get();
 
   if (isSpace(ch)) {
     return lexWordDone(word);
   } else {
     word.push_back(ch);
-    return lexWord(is, word);
+    return lexWord(source, word);
   }
 }
 
-std::optional<Lexeme> lex(std::istream &is) {
-  const int ch = is.get();
+std::optional<Lexeme> lex(std::istream &source) {
+  const int ch = source.get();
   if (ch == EOF) {
     return {};
   } else if (isSpace(ch)) {
-    return lex(is);
+    return lex(source);
   } else {
-    return lexChar(ch, is);
+    return lexChar(ch, source);
   }
 }
 
-Lexeme lexChar(int ch, std::istream &is) {
+Lexeme lexChar(int ch, std::istream &source) {
   if (ch == '\'') {
-    return lexChar(is);
+    return lexChar(source);
   } else if (ch == '\"') {
     std::string str;
-    return lexStr(is, str);
+    return lexStr(source, str);
   } else {
     std::string word;
     word.push_back(ch);
     if (isDec(ch)) {
-      return lexNum(is, word, +1, toDec(ch));
+      return lexNum(source, word, +1, toDec(ch));
     } else if (ch == '+') {
-      return lexSign(is, word, +1);
+      return lexSign(source, word, +1);
     } else if (ch == '-') {
-      return lexSign(is, word, -1);
+      return lexSign(source, word, -1);
     } else {
-      return lexWord(is, word);
+      return lexWord(source, word);
     }
   }
 }

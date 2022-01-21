@@ -33,7 +33,7 @@ private:
 public:
   ~Engine();
 
-  void eval(std::istream &is);
+  void eval(std::istream &source);
 };
 
 #endif // ENGINE_HH

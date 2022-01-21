@@ -22,10 +22,10 @@ Expression parseBeginWhile(std::istream &source,
 Expression parseVariable(std::istream &source);
 std::vector<Expression> parseAll(std::istream &source);
 Expression parseLexeme(const Lexeme &lexeme, std::istream &source);
-Lexeme lexNoEOF(std::istream &is);
+Lexeme lexNoEOF(std::istream &source);
 
-Lexeme lexNoEOF(std::istream &is) {
-  std::optional<Lexeme> result = lex(is);
+Lexeme lexNoEOF(std::istream &source) {
+  std::optional<Lexeme> result = lex(source);
   if (result) {
     return *result;
   } else {

@@ -8,9 +8,9 @@
 
 Engine engine;
 
-void evalLoop(std::istream &is) {
-  while (!is.eof()) {
-    engine.eval(is);
+void evalLoop(std::istream &source) {
+  while (!source.eof()) {
+    engine.eval(source);
   }
 }
 
