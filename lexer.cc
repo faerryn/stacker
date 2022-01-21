@@ -1,7 +1,8 @@
 #include "lexer.hh"
 
-#include <cctype>
+#include <cstdint>
 #include <cstdlib>
+#include <iostream>
 #include <optional>
 
 bool isDec(int ch);
@@ -18,6 +19,8 @@ Lexeme lexStr(std::istream &is, std::string &str);
 
 Lexeme lexWordDone(const std::string &word);
 Lexeme lexWord(std::istream &is, std::string &word);
+
+Lexeme lexChar(int ch, std::istream &is);
 
 bool isSpace(int ch) {
   return ch == EOF || ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t';
@@ -245,7 +248,13 @@ std::optional<Lexeme> lex(std::istream &is) {
     return {};
   } else if (isSpace(ch)) {
     return lex(is);
-  } else if (ch == '\'') {
+  } else {
+    return lexChar(ch, is);
+  }
+}
+
+Lexeme lexChar(int ch, std::istream &is) {
+  if (ch == '\'') {
     return lexChar(is);
   } else if (ch == '\"') {
     std::string str;
@@ -262,15 +271,5 @@ std::optional<Lexeme> lex(std::istream &is) {
     } else {
       return lexWord(is, word);
     }
-  }
-}
-
-Lexeme lexNoEOF(std::istream &is) {
-  std::optional<Lexeme> result = lex(is);
-  if (result) {
-    return *result;
-  } else {
-    std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected EOF\n";
-    exit(EXIT_FAILURE);
   }
 }

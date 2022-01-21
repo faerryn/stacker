@@ -1,9 +1,13 @@
 #include "engine.hh"
 
-#include "parser.hh"
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <optional>
+#include <vector>
+
+#include "parser.hh"
 
 std::int64_t boolToInt64(bool b) { return b ? ~0 : 0; }
 bool int64ToBool(std::int64_t i) { return i != 0; }

@@ -1,9 +1,12 @@
 #include "parser.hh"
-#include "lexer.hh"
 
+#include <cstdint>
 #include <cstdlib>
 #include <iostream>
+#include <optional>
 #include <vector>
+
+#include "lexer.hh"
 
 Expression parseDefineWord(std::istream &source);
 Expression parseDefineBody(std::istream &source, const std::string &word,
@@ -19,12 +22,12 @@ Expression parseBeginWhile(std::istream &source,
 Expression parseVariable(std::istream &source);
 std::vector<Expression> parseAll(std::istream &source);
 Expression parseLexeme(const Lexeme &lexeme, std::istream &source);
+Lexeme lexNoEOF(std::istream &is);
 
-Expression parseNoEOF(std::istream &source) {
-  std::optional<Expression> next = parse(source);
-  if (next) {
-    return *next;
-
+Lexeme lexNoEOF(std::istream &is) {
+  std::optional<Lexeme> result = lex(is);
+  if (result) {
+    return *result;
   } else {
     std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected EOF\n";
     exit(EXIT_FAILURE);

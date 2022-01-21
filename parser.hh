@@ -80,7 +80,6 @@ struct Expression {
       data;
 };
 
-Expression parseNoEOF(std::istream &source);
 std::optional<Expression> parse(std::istream &is);
 
 #endif // PARSER_HH

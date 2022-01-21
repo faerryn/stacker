@@ -67,7 +67,6 @@ struct Lexeme {
   std::variant<std::monostate, std::int64_t, std::string> data;
 };
 
-Lexeme lexNoEOF(std::istream &is);
 std::optional<Lexeme> lex(std::istream &is);
 
 #endif // LEXER_HH
