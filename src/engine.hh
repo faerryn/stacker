@@ -26,7 +26,7 @@ private:
   std::map<std::string, std::vector<Expression>> dictionary;
   std::set<std::uint8_t *> allocs;
 
-  void define(const std::string &word, const std::vector<Expression> &def);
+  void define(const std::string &word, const std::vector<Expression> &body);
   bool evalBody(const std::vector<Expression> &body);
   bool evalExpression(const Expression &expression);
 

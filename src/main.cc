@@ -38,6 +38,7 @@ int main(int argc, char **argv) {
 
   if (argc == 1) {
     std::vector<const char *> args;
+    args.reserve(argc);
     for (int i = 0; i < argc; ++i) {
       args.push_back(argv[i]);
     }
@@ -50,6 +51,7 @@ int main(int argc, char **argv) {
     const std::filesystem::path sourcePath{argv[2]};
     if (std::strcmp(argv[1], "interp") == 0) {
       std::vector<const char *> args;
+      args.reserve(argc - 2);
       for (int i = 2; i < argc; ++i) {
         args.push_back(argv[i]);
       }

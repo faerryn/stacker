@@ -27,7 +27,7 @@ struct Lexeme {
 
     And,
     Or,
-    Inv,
+    Invert,
 
     Emit,
     Key,

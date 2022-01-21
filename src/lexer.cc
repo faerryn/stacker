@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
+#include <map>
 #include <optional>
 
 bool isDec(int ch);
@@ -39,15 +40,18 @@ char lexEscape(std::istream &source) {
 
   if (ch == 'n') {
     return '\n';
-  } else if (ch == 'r') {
-    return '\r';
-  } else if (ch == 't') {
-    return '\t';
-  } else if (ch == '\b') {
-    return '\b';
-  } else {
-    return ch;
   }
+  if (ch == 'r') {
+    return '\r';
+  }
+  if (ch == 't') {
+    return '\t';
+  }
+  if (ch == '\b') {
+    return '\b';
+  }
+
+  return char(ch);
 }
 
 Lexeme lexChar(std::istream &source) {
@@ -63,7 +67,7 @@ Lexeme lexChar(std::istream &source) {
   if (ch == '\\') {
     value = lexEscape(source);
   } else {
-    value = ch;
+    value = char(ch);
   }
 
   if (source.get() != '\'') {
@@ -91,7 +95,7 @@ Lexeme lexStr(std::istream &source, std::string &str) {
   if (ch == '\\') {
     value = lexEscape(source);
   } else {
-    value = ch;
+    value = char(ch);
   }
 
   str.push_back(value);
@@ -107,15 +111,16 @@ Lexeme lexNum(std::istream &source, std::string &word, std::int64_t sign,
     return Lexeme{Lexeme::Type::Number, sign * mag};
   }
 
-  word.push_back(ch);
+  word.push_back(char(ch));
 
   if (isDec(ch)) {
-    mag *= 10;
+    const std::int64_t TEN = 10;
+    mag *= TEN;
     mag += toDec(ch);
     return lexNum(source, word, sign, mag);
-  } else {
-    return lexWord(source, word);
   }
+
+  return lexWord(source, word);
 }
 
 Lexeme lexSign(std::istream &source, std::string &word, std::int64_t sign) {
@@ -125,112 +130,78 @@ Lexeme lexSign(std::istream &source, std::string &word, std::int64_t sign) {
     return lexWordDone(word);
   }
 
-  word.push_back(ch);
+  word.push_back(char(ch));
 
   if (isDec(ch)) {
     return lexNum(source, word, sign, toDec(ch));
-  } else {
-    return lexWord(source, word);
   }
+
+  return lexWord(source, word);
 }
 
 Lexeme lexWordDone(const std::string &word) {
-  if (word == "+") {
-    return Lexeme{Lexeme::Type::Add, {}};
-  } else if (word == "-") {
-    return Lexeme{Lexeme::Type::Sub, {}};
-  } else if (word == "*") {
-    return Lexeme{Lexeme::Type::Mul, {}};
-  } else if (word == "/") {
-    return Lexeme{Lexeme::Type::Div, {}};
-  } else if (word == "rem") {
-    return Lexeme{Lexeme::Type::Rem, {}};
-  } else if (word == "mod") {
-    return Lexeme{Lexeme::Type::Mod, {}};
+  const std::map<std::string, Lexeme> BUILTIN_TABLE = {
 
-  } else if (word == "<") {
-    return Lexeme{Lexeme::Type::Less, {}};
-  } else if (word == ">") {
-    return Lexeme{Lexeme::Type::More, {}};
-  } else if (word == "=") {
-    return Lexeme{Lexeme::Type::Equal, {}};
-  } else if (word == "<>") {
-    return Lexeme{Lexeme::Type::NotEqual, {}};
+      {"+", {Lexeme::Type::Add, {}}},
+      {"-", {Lexeme::Type::Sub, {}}},
+      {"*", {Lexeme::Type::Mul, {}}},
+      {"/", {Lexeme::Type::Div, {}}},
+      {"rem", {Lexeme::Type::Rem, {}}},
+      {"mod", {Lexeme::Type::Mod, {}}},
 
-  } else if (word == "and") {
-    return Lexeme{Lexeme::Type::And, {}};
-  } else if (word == "or") {
-    return Lexeme{Lexeme::Type::Or, {}};
-  } else if (word == "invert") {
-    return Lexeme{Lexeme::Type::Inv, {}};
+      {"<", {Lexeme::Type::Less, {}}},
+      {">", {Lexeme::Type::More, {}}},
+      {"=", {Lexeme::Type::Equal, {}}},
+      {"<>", {Lexeme::Type::NotEqual, {}}},
 
-  } else if (word == "emit") {
-    return Lexeme{Lexeme::Type::Emit, {}};
-  } else if (word == "key") {
-    return Lexeme{Lexeme::Type::Key, {}};
+      {"and", {Lexeme::Type::And, {}}},
+      {"or", {Lexeme::Type::Or, {}}},
+      {"invert", {Lexeme::Type::Invert, {}}},
 
-  } else if (word == "dup") {
-    return Lexeme{Lexeme::Type::Dup, {}};
-  } else if (word == "drop") {
-    return Lexeme{Lexeme::Type::Drop, {}};
-  } else if (word == "swap") {
-    return Lexeme{Lexeme::Type::Swap, {}};
-  } else if (word == "over") {
-    return Lexeme{Lexeme::Type::Over, {}};
-  } else if (word == "rot") {
-    return Lexeme{Lexeme::Type::Rot, {}};
+      {"emit", {Lexeme::Type::Emit, {}}},
+      {"key", {Lexeme::Type::Key, {}}},
 
-  } else if (word == ">r") {
-    return Lexeme{Lexeme::Type::ToR, {}};
-  } else if (word == "r>") {
-    return Lexeme{Lexeme::Type::RFrom, {}};
-  } else if (word == "r@") {
-    return Lexeme{Lexeme::Type::RFetch, {}};
+      {"dup", {Lexeme::Type::Dup, {}}},
+      {"drop", {Lexeme::Type::Drop, {}}},
+      {"swap", {Lexeme::Type::Swap, {}}},
+      {"over", {Lexeme::Type::Over, {}}},
+      {"rot", {Lexeme::Type::Rot, {}}},
 
-  } else if (word == "!") {
-    return Lexeme{Lexeme::Type::Store, {}};
-  } else if (word == "@") {
-    return Lexeme{Lexeme::Type::Fetch, {}};
-  } else if (word == "c!") {
-    return Lexeme{Lexeme::Type::CStore, {}};
-  } else if (word == "c@") {
-    return Lexeme{Lexeme::Type::CFetch, {}};
-  } else if (word == "alloc") {
-    return Lexeme{Lexeme::Type::Alloc, {}};
-  } else if (word == "free") {
-    return Lexeme{Lexeme::Type::Free, {}};
+      {">r", {Lexeme::Type::ToR, {}}},
+      {"r>", {Lexeme::Type::RFrom, {}}},
+      {"r@", {Lexeme::Type::RFetch, {}}},
 
-  } else if (word == ".s") {
-    return Lexeme{Lexeme::Type::DotS, {}};
-  } else if (word == "bye") {
-    return Lexeme{Lexeme::Type::Bye, {}};
+      {"!", {Lexeme::Type::Store, {}}},
+      {"@", {Lexeme::Type::Fetch, {}}},
+      {"c!", {Lexeme::Type::CStore, {}}},
+      {"c@", {Lexeme::Type::CFetch, {}}},
+      {"alloc", {Lexeme::Type::Alloc, {}}},
+      {"free", {Lexeme::Type::Free, {}}},
 
-  } else if (word == ":") {
-    return Lexeme{Lexeme::Type::Col, {}};
-  } else if (word == ";") {
-    return Lexeme{Lexeme::Type::Semi, {}};
+      {".s", {Lexeme::Type::DotS, {}}},
+      {"bye", {Lexeme::Type::Bye, {}}},
 
-  } else if (word == "if") {
-    return Lexeme{Lexeme::Type::If, {}};
-  } else if (word == "then") {
-    return Lexeme{Lexeme::Type::Then, {}};
-  } else if (word == "else") {
-    return Lexeme{Lexeme::Type::Else, {}};
+      {":", {Lexeme::Type::Col, {}}},
+      {";", {Lexeme::Type::Semi, {}}},
 
-  } else if (word == "begin") {
-    return Lexeme{Lexeme::Type::Begin, {}};
-  } else if (word == "until") {
-    return Lexeme{Lexeme::Type::Until, {}};
-  } else if (word == "while") {
-    return Lexeme{Lexeme::Type::While, {}};
-  } else if (word == "repeat") {
-    return Lexeme{Lexeme::Type::Repeat, {}};
-  } else if (word == "again") {
-    return Lexeme{Lexeme::Type::Again, {}};
+      {"if", {Lexeme::Type::If, {}}},
+      {"then", {Lexeme::Type::Then, {}}},
+      {"else", {Lexeme::Type::Else, {}}},
 
-  } else {
-    return Lexeme{Lexeme::Type::Word, word};
+      {"begin", {Lexeme::Type::Begin, {}}},
+      {"until", {Lexeme::Type::Until, {}}},
+      {"while", {Lexeme::Type::While, {}}},
+      {"repeat", {Lexeme::Type::Repeat, {}}},
+      {"again", {Lexeme::Type::Again, {}}},
+
+  };
+
+  const auto &find = BUILTIN_TABLE.find(word);
+  if (find != BUILTIN_TABLE.end()) {
+    return find->second;
   }
+
+  return Lexeme{Lexeme::Type::Word, word};
 }
 
 Lexeme lexWord(std::istream &source, std::string &word) {
@@ -238,40 +209,42 @@ Lexeme lexWord(std::istream &source, std::string &word) {
 
   if (isSpace(ch)) {
     return lexWordDone(word);
-  } else {
-    word.push_back(ch);
-    return lexWord(source, word);
   }
+
+  word.push_back(char(ch));
+  return lexWord(source, word);
 }
 
 std::optional<Lexeme> lex(std::istream &source) {
   const int ch = source.get();
   if (ch == EOF) {
     return {};
-  } else if (isSpace(ch)) {
-    return lex(source);
-  } else {
-    return lexChar(ch, source);
   }
+  if (isSpace(ch)) {
+    return lex(source);
+  }
+  return lexChar(ch, source);
 }
 
 Lexeme lexChar(int ch, std::istream &source) {
   if (ch == '\'') {
     return lexChar(source);
-  } else if (ch == '\"') {
+  }
+  if (ch == '\"') {
     std::string str;
     return lexStr(source, str);
-  } else {
-    std::string word;
-    word.push_back(ch);
-    if (isDec(ch)) {
-      return lexNum(source, word, +1, toDec(ch));
-    } else if (ch == '+') {
-      return lexSign(source, word, +1);
-    } else if (ch == '-') {
-      return lexSign(source, word, -1);
-    } else {
-      return lexWord(source, word);
-    }
   }
+
+  std::string word;
+  word.push_back(char(ch));
+  if (isDec(ch)) {
+    return lexNum(source, word, +1, toDec(ch));
+  }
+  if (ch == '+') {
+    return lexSign(source, word, +1);
+  }
+  if (ch == '-') {
+    return lexSign(source, word, -1);
+  }
+  return lexWord(source, word);
 }

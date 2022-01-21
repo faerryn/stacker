@@ -1,5 +1,6 @@
 #include "engine.hh"
 
+#include <algorithm>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -18,9 +19,9 @@ bool int64ToBool(std::int64_t i) { return i != 0; }
 void Engine::pushArgs(const std::vector<const char *> &args) {
   for (auto it = args.rbegin(); it != args.rend(); ++it) {
     parameterStack.push(reinterpret_cast<std::int64_t>(*it));
-    parameterStack.push(std::strlen(*it));
+    parameterStack.push(std::int64_t(std::strlen(*it)));
   }
-  parameterStack.push(args.size());
+  parameterStack.push(std::int64_t(args.size()));
 }
 
 void Engine::Stack::push(std::int64_t number) { data.push_back(number); }
@@ -85,7 +86,7 @@ bool Engine::evalExpression(const Expression &expression) {
     allocs.insert(addr);
     std::memcpy(addr, str.data(), str.size());
     parameterStack.push(reinterpret_cast<std::int64_t>(addr));
-    parameterStack.push(str.size());
+    parameterStack.push(std::int64_t(str.size()));
     return true;
   }
   case Expression::Type::Word: {

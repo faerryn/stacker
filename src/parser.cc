@@ -28,10 +28,10 @@ Lexeme lexNoEOF(std::istream &source) {
   std::optional<Lexeme> result = lex(source);
   if (result) {
     return *result;
-  } else {
-    std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected EOF\n";
-    exit(EXIT_FAILURE);
   }
+
+  std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected EOF\n";
+  exit(EXIT_FAILURE);
 }
 
 std::vector<Expression> parseAll(std::istream &source) {
@@ -72,8 +72,9 @@ Expression parseBegin(std::istream &source, std::vector<Expression> &body) {
     return Expression{Expression::Type::BeginUntil, body};
   } break;
   case Lexeme::Type::While: {
+    const std::vector<Expression> &condBody = body;
     std::vector<Expression> whileBody;
-    return parseBeginWhile(source, body, whileBody);
+    return parseBeginWhile(source, condBody, whileBody);
   } break;
   case Lexeme::Type::Again: {
     return Expression{Expression::Type::BeginAgain, body};
@@ -116,8 +117,9 @@ Expression parseIf(std::istream &source, std::vector<Expression> &body) {
     return Expression{Expression::Type::IfThen, body};
   } break;
   case Lexeme::Type::Else: {
+    const std::vector<Expression> &ifBody = body;
     std::vector<Expression> elseBody;
-    return parseIfElse(source, body, elseBody);
+    return parseIfElse(source, ifBody, elseBody);
   }
   default: {
     body.push_back(parseLexeme(lexeme, source));
@@ -175,9 +177,9 @@ std::optional<Expression> parse(std::istream &source) {
   std::optional<Lexeme> lexeme = lex(source);
   if (lexeme) {
     return parseLexeme(*lexeme, source);
-  } else {
-    return {};
   }
+
+  return {};
 }
 
 Expression parseLexeme(const Lexeme &lexeme, std::istream &source) {
@@ -219,7 +221,7 @@ Expression parseLexeme(const Lexeme &lexeme, std::istream &source) {
     return Expression{Expression::Type::And, {}};
   case Lexeme::Type::Or:
     return Expression{Expression::Type::Or, {}};
-  case Lexeme::Type::Inv:
+  case Lexeme::Type::Invert:
     return Expression{Expression::Type::Inv, {}};
 
   case Lexeme::Type::Emit:
