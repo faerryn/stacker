@@ -1,7 +1,7 @@
-: 3dup >r 2dup r@ -rot r> ;
-: 3drop drop drop drop ;
-
 : star '*' ;
+: space ' ' ;
+
+: 3dup >r 2dup r@ -rot r> ;
 
 : r110
   star = >r
@@ -15,10 +15,10 @@
   3dup swap invert or or invert >r
   3dup invert or or invert >r
 
-  3drop
+  drop drop drop
   r> r> r> r> r> or or or or
 
-  if star else ' ' then
+  if star else space then
 ;
 
 : r110map
@@ -41,8 +41,8 @@
   drop drop drop ;
 
 : r110scroller
-  dup alloc 2dup swap ' ' fill
-  swap dup alloc 2dup swap ' ' fill
+  dup alloc 2dup swap space fill
+  swap dup alloc 2dup swap space fill
   2dup + 2 - star swap c!
   swap
   begin
@@ -53,6 +53,6 @@
   cr
   drop free free ;
 
-256 r110scroller
+64 r110scroller
 
 bye
