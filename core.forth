@@ -46,11 +46,14 @@
 : spaces begin dup 0> while ' ' emit 1- repeat ;
 : cr '\n' emit ;
 
-: type begin dup 0> while swap dup c@ emit 1+ swap 1- repeat drop drop ;
+: type
+  begin dup 0> while
+      swap dup c@ emit 1+ swap 1-
+    repeat
+  drop drop ;
 : accept
   0
-  begin
-    2dup > while
+  begin 2dup > while
       key
       dup '\n' <> if
         >r rot 2dup + r> swap c! -rot 1+
