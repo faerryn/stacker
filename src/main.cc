@@ -7,10 +7,7 @@
 #include "compiler.hh"
 #include "engine.hh"
 
-Engine engine;
-Compiler compiler;
-
-bool evalFile(const std::filesystem::path &path) {
+bool evalFile(Engine &engine, const std::filesystem::path &path) {
   std::ifstream file{path};
   if (!file.is_open()) {
     std::cerr << __FILE__ << ":" << __LINE__ << path
@@ -22,7 +19,7 @@ bool evalFile(const std::filesystem::path &path) {
   return flag;
 }
 
-void compileFile(const std::filesystem::path &path) {
+void compileFile(Compiler &compiler, const std::filesystem::path &path) {
   std::ifstream file{path};
   if (!file.is_open()) {
     std::cerr << __FILE__ << ":" << __LINE__ << path
@@ -39,17 +36,35 @@ int main(int argc, char **argv) {
   std::filesystem::path corePath = selfPath;
   corePath.replace_filename("core.forth");
 
-  if (argc >= 3) {
+  if (argc == 1) {
+    std::vector<const char *> args;
+    for (int i = 0; i < argc; ++i) {
+      args.push_back(argv[i]);
+    }
+    Engine engine;
+    evalFile(engine, corePath);
+
+    engine.pushArgs(args);
+    engine.eval(std::cin);
+  } else if (argc >= 3) {
     const std::filesystem::path sourcePath{argv[2]};
     if (std::strcmp(argv[1], "interp") == 0) {
-      evalFile(corePath);
-      const bool flag = evalFile(sourcePath);
+      std::vector<const char *> args;
+      for (int i = 2; i < argc; ++i) {
+        args.push_back(argv[i]);
+      }
+      Engine engine;
+      evalFile(engine, corePath);
+
+      engine.pushArgs(args);
+      const bool flag = evalFile(engine, sourcePath);
       if (flag) {
         engine.eval(std::cin);
       }
     } else if (std::strcmp(argv[1], "comp") == 0) {
-      compileFile(corePath);
-      compileFile(argv[2]);
+      Compiler compiler;
+      compileFile(compiler, corePath);
+      compileFile(compiler, argv[2]);
 
       std::filesystem::path destinationPath = sourcePath;
       destinationPath.concat(".cc");
@@ -57,10 +72,9 @@ int main(int argc, char **argv) {
       std::ofstream destination(destinationPath);
       compiler.write(destination);
       destination.close();
+    } else {
+      std::cerr << "unknown command " << argv[1] << "\n";
     }
-  } else if (argc == 1) {
-    evalFile(corePath);
-    engine.eval(std::cin);
   } else {
     std::cerr << "unknown command " << argv[1] << "\n";
     exit(EXIT_FAILURE);

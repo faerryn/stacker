@@ -364,29 +364,36 @@ void Compiler::compileExpression(const Expression &expression,
 }
 
 void Compiler::write(std::ostream &destination) {
-  destination << "// HEADER\n"
-                 "#include <cstdint>\n"
-                 "#include <iostream>\n"
-                 "#include <vector>\n"
-                 "class Stack {\n"
-                 "private:\n"
-                 "std::vector<std::int64_t> data;\n"
-                 "public:\n"
-                 "void push(std::int64_t number) { data.push_back(number); }\n"
-                 "std::int64_t pop() {\n"
-                 "const std::int64_t result = data.back();\n"
-                 "data.pop_back();\n"
-                 "return result;\n"
-                 "}\n"
-                 "};\n"
-                 "Stack parameterStack;\n"
-                 "Stack returnStack;\n"
-                 "std::int64_t boolToInt64(bool b) { return b ? ~0 : 0; }\n"
-                 "bool int64ToBool(std::int64_t i) { return i != 0; }\n"
-              << declarationSection << definitionSection
-              << "// BODY\n"
-                 "int main(int argc, char** argv) {\n"
-              << mainSection
-              << "// TAIL\n"
-                 "}\n";
+  destination
+      << "// HEADER\n"
+         "#include <cstring>\n"
+         "#include <cstdint>\n"
+         "#include <iostream>\n"
+         "#include <vector>\n"
+         "class Stack {\n"
+         "private:\n"
+         "std::vector<std::int64_t> data;\n"
+         "public:\n"
+         "void push(std::int64_t number) { data.push_back(number); }\n"
+         "std::int64_t pop() {\n"
+         "const std::int64_t result = data.back();\n"
+         "data.pop_back();\n"
+         "return result;\n"
+         "}\n"
+         "};\n"
+         "Stack parameterStack;\n"
+         "Stack returnStack;\n"
+         "std::int64_t boolToInt64(bool b) { return b ? ~0 : 0; }\n"
+         "bool int64ToBool(std::int64_t i) { return i != 0; }\n"
+      << declarationSection << definitionSection
+      << "// BODY\n"
+         "int main(int argc, char** argv) {\n"
+         "for (int i = argc - 1; i >= 0; --i) {\n"
+         "parameterStack.push(reinterpret_cast<std::int64_t>(argv[i]));\n"
+         "parameterStack.push(std::strlen(argv[i]));\n"
+         "}\n"
+         "parameterStack.push(argc);\n"
+      << mainSection
+      << "// TAIL\n"
+         "}\n";
 }

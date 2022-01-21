@@ -31,6 +31,8 @@ private:
   bool evalExpression(const Expression &expression);
 
 public:
+  Engine() = default;
+  void pushArgs(const std::vector<const char *> &args);
   ~Engine();
 
   bool eval(std::istream &source);

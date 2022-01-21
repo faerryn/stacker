@@ -9,8 +9,19 @@
 
 #include "parser.hh"
 
+std::int64_t boolToInt64(bool b);
+bool int64ToBool(std::int64_t i);
+
 std::int64_t boolToInt64(bool b) { return b ? ~0 : 0; }
 bool int64ToBool(std::int64_t i) { return i != 0; }
+
+void Engine::pushArgs(const std::vector<const char *> &args) {
+  for (auto it = args.rbegin(); it != args.rend(); ++it) {
+    parameterStack.push(reinterpret_cast<std::int64_t>(*it));
+    parameterStack.push(std::strlen(*it));
+  }
+  parameterStack.push(args.size());
+}
 
 void Engine::Stack::push(std::int64_t number) { data.push_back(number); }
 
