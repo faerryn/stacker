@@ -55,7 +55,7 @@ struct Expression {
     DotS,
     Bye,
 
-    Define,
+    WordDefinition,
 
     IfThen,
     IfElseThen,

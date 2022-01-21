@@ -8,9 +8,9 @@
 
 #include "lexer.hh"
 
-Expression parseDefineWord(std::istream &source);
-Expression parseDefineBody(std::istream &source, const std::string &word,
-                           std::vector<Expression> &body);
+Expression parseDefinitionWord(std::istream &source);
+Expression parseDefinitionBody(std::istream &source, const std::string &word,
+                               std::vector<Expression> &body);
 Expression parseIf(std::istream &source, std::vector<Expression> &body);
 Expression parseIfElse(std::istream &source,
                        const std::vector<Expression> &ifBody,
@@ -129,13 +129,13 @@ Expression parseIf(std::istream &source, std::vector<Expression> &body) {
   exit(EXIT_FAILURE);
 }
 
-Expression parseDefineBody(std::istream &source, const std::string &word,
-                           std::vector<Expression> &body) {
+Expression parseDefinitionBody(std::istream &source, const std::string &word,
+                               std::vector<Expression> &body) {
   const Lexeme lexeme = lexNoEOF(source);
 
   switch (lexeme.type) {
   case Lexeme::Type::Semi: {
-    return Expression{Expression::Type::Define,
+    return Expression{Expression::Type::WordDefinition,
                       Expression::WordDefinition{word, body}};
   } break;
   case Lexeme::Type::Col:
@@ -144,7 +144,7 @@ Expression parseDefineBody(std::istream &source, const std::string &word,
     break;
   default: {
     body.push_back(parseLexeme(lexeme, source));
-    return parseDefineBody(source, word, body);
+    return parseDefinitionBody(source, word, body);
   } break;
   }
 
@@ -152,14 +152,14 @@ Expression parseDefineBody(std::istream &source, const std::string &word,
   exit(EXIT_FAILURE);
 }
 
-Expression parseDefineWord(std::istream &source) {
+Expression parseDefinitionWord(std::istream &source) {
   const Lexeme lexeme = lexNoEOF(source);
 
   switch (lexeme.type) {
   case Lexeme::Type::Word: {
     const std::string &word = std::get<std::string>(lexeme.data);
     std::vector<Expression> body;
-    return parseDefineBody(source, word, body);
+    return parseDefinitionBody(source, word, body);
   } break;
   default:
     std::cerr << __FILE__ << ":" << __LINE__ << ": expected WORD\n";
@@ -264,7 +264,7 @@ Expression parseLexeme(const Lexeme &lexeme, std::istream &source) {
     return Expression{Expression::Type::Bye, {}};
 
   case Lexeme::Type::Col:
-    return parseDefineWord(source);
+    return parseDefinitionWord(source);
   case Lexeme::Type::Semi:
     std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected semicolon\n";
     exit(EXIT_FAILURE);

@@ -43,13 +43,13 @@ bool Engine::evalBody(const std::vector<Expression> &body) {
 }
 
 void Engine::define(const std::string &word,
-                    const std::vector<Expression> &def) {
+                    const std::vector<Expression> &body) {
   if (dictionary.contains(word)) {
     std::cerr << __FILE__ << ":" << __LINE__
               << ": word already defined: " << word << "\n";
     exit(EXIT_FAILURE);
   }
-  dictionary[word] = def;
+  dictionary[word] = body;
 }
 
 bool Engine::eval(std::istream &source) {
@@ -280,10 +280,10 @@ bool Engine::evalExpression(const Expression &expression) {
   case Expression::Type::Bye:
     return false;
 
-  case Expression::Type::Define: {
-    const Expression::WordDefinition &def =
+  case Expression::Type::WordDefinition: {
+    const Expression::WordDefinition &definition =
         std::get<Expression::WordDefinition>(expression.data);
-    define(def.word, def.body);
+    define(definition.word, definition.body);
     return true;
   }
 

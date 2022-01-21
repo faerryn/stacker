@@ -50,11 +50,12 @@ void Compiler::compileExpression(const Expression &expression,
   case Expression::Type::Word: {
     const std::string &word = std::get<std::string>(expression.data);
     const auto &find = dictionary.find(word);
+    const int name = find->second;
     if (find != dictionary.end()) {
       destination += "// Word " + word +
                      "\n"
                      "word_" +
-                     std::to_string(find->second) + "();\n";
+                     std::to_string(name) + "();\n";
     } else {
       std::cerr << __FILE__ << ":" << __LINE__ << ": unknown word: " << word
                 << "\n";
@@ -287,7 +288,7 @@ void Compiler::compileExpression(const Expression &expression,
                    "exit(EXIT_SUCCESS);\n";
     break;
 
-  case Expression::Type::Define: {
+  case Expression::Type::WordDefinition: {
     const Expression::WordDefinition &wordDefinition =
         std::get<Expression::WordDefinition>(expression.data);
     std::string declaration = "// Declare " + wordDefinition.word +

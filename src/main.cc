@@ -51,10 +51,10 @@ int main(int argc, char **argv) {
       compileFile(corePath);
       compileFile(argv[2]);
 
-      std::filesystem::path ccPath = sourcePath;
-      ccPath.concat(".cc");
+      std::filesystem::path destinationPath = sourcePath;
+      destinationPath.concat(".cc");
 
-      std::ofstream destination(ccPath);
+      std::ofstream destination(destinationPath);
       compiler.write(destination);
       destination.close();
     }
