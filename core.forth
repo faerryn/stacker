@@ -11,6 +11,7 @@
 : 0= 0 = ;
 : 0< 0 < ;
 : 0> 0 > ;
+: 0<> 0 <> ;
 : 1+ 1 + ;
 : 1- 1 - ;
 : 2+ 2 + ;
@@ -46,3 +47,15 @@
 : cr '\n' emit ;
 
 : type begin dup 0> while swap dup c@ emit 1+ swap 1- repeat drop drop ;
+: accept
+  0
+  begin
+    2dup > while
+      key
+      dup '\n' <> if
+        >r rot 2dup + r> swap c! -rot 1+
+      else
+        drop swap drop dup
+      then
+    repeat
+  -rot drop drop ;

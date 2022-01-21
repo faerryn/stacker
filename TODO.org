@@ -1,4 +1,5 @@
 #+STARTUP: indent
 
-* TODO access stdin
+* DONE access stdin
 * TODO access argc, argv
+* TODO figure out how EOF works
