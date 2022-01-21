@@ -44,6 +44,11 @@ STACKER is a stack-based programming language inspired by [[https://www.forth.co
   - c@
   - alloc (malloc)
   - free (free)
-- Optional
+- I/O
+  - emit
+  - key
+  - type
+  - accept
+- Misc.
   - .s
   - bye
