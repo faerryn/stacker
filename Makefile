@@ -1,7 +1,7 @@
 CXXFLAGS ?= -g
 override CXXFLAGS += -std=c++20 -Werror -Wall -Wextra -Wpedantic
 
-SOURCES := main.cc lexer.cc parser.cc engine.cc compiler.cc
+SOURCES := src/main.cc src/lexer.cc src/parser.cc src/engine.cc src/compiler.cc
 OBJECTS := $(patsubst %.cc,%.o,$(SOURCES))
 DEPENDS := $(patsubst %.cc,%.d,$(SOURCES))
 
