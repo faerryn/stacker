@@ -57,6 +57,14 @@ void Engine::evalExpression(const Expression &expression) {
   case Expression::Type::Number:
     parameterStack.push(std::get<std::int64_t>(expression.data));
     break;
+  case Expression::Type::String: {
+    const std::string &str = std::get<std::string>(expression.data);
+    std::uint8_t *const addr = new std::uint8_t[str.size()];
+    allocs.insert(addr);
+    std::memcpy(addr, str.data(), str.size());
+    parameterStack.push(reinterpret_cast<std::int64_t>(addr));
+    parameterStack.push(str.size());
+  } break;
   case Expression::Type::Word: {
     const std::string &word = std::get<std::string>(expression.data);
     const auto &find = dictionary.find(word);
@@ -75,14 +83,6 @@ void Engine::evalExpression(const Expression &expression) {
       std::cerr << __FILE__ << ":" << __LINE__ << ": unknown word\n";
       exit(EXIT_FAILURE);
     }
-  } break;
-  case Expression::Type::String: {
-    const std::string &str = std::get<std::string>(expression.data);
-    std::uint8_t *const addr = new std::uint8_t[str.size()];
-    allocs.insert(addr);
-    std::memcpy(addr, str.data(), str.size());
-    parameterStack.push(reinterpret_cast<std::int64_t>(addr));
-    parameterStack.push(str.size());
   } break;
 
   case Expression::Type::Add: {
@@ -195,52 +195,6 @@ void Engine::evalExpression(const Expression &expression) {
     parameterStack.push(returnStack.pop());
     break;
 
-  case Expression::Type::Define: {
-    const Expression::Def &def = std::get<Expression::Def>(expression.data);
-    define(def.word, def.body);
-  } break;
-
-  case Expression::Type::IfThen: {
-    const std::vector<Expression> &body =
-        std::get<std::vector<Expression>>(expression.data);
-    if (int64ToBool(parameterStack.pop())) {
-      evalBody(body);
-    }
-  } break;
-  case Expression::Type::IfElseThen: {
-    const Expression::IfElse &ifElse =
-        std::get<Expression::IfElse>(expression.data);
-    if (int64ToBool(parameterStack.pop())) {
-      evalBody(ifElse.ifBody);
-    } else {
-      evalBody(ifElse.elseBody);
-    }
-  } break;
-
-  case Expression::Type::BeginUntil: {
-    const std::vector<Expression> &body =
-        std::get<std::vector<Expression>>(expression.data);
-    do {
-      evalBody(body);
-    } while (!int64ToBool(parameterStack.pop()));
-  } break;
-  case Expression::Type::BeginWhileRepeat: {
-    const Expression::BeginWhile &beginWhile =
-        std::get<Expression::BeginWhile>(expression.data);
-    evalBody(beginWhile.condBody);
-    while (int64ToBool(parameterStack.pop())) {
-      evalBody(beginWhile.whileBody);
-      evalBody(beginWhile.condBody);
-    }
-  } break;
-  case Expression::Type::BeginAgain: {
-    const std::vector<Expression> &body =
-        std::get<std::vector<Expression>>(expression.data);
-    while (true) {
-      evalBody(body);
-    }
-  } break;
-
   case Expression::Type::Store: {
     const std::int64_t b = parameterStack.pop();
     const std::int64_t a = parameterStack.pop();
@@ -286,6 +240,52 @@ void Engine::evalExpression(const Expression &expression) {
   case Expression::Type::Bye:
     exit(EXIT_SUCCESS);
     break;
+
+  case Expression::Type::Define: {
+    const Expression::Def &def = std::get<Expression::Def>(expression.data);
+    define(def.word, def.body);
+  } break;
+
+  case Expression::Type::IfThen: {
+    const std::vector<Expression> &body =
+        std::get<std::vector<Expression>>(expression.data);
+    if (int64ToBool(parameterStack.pop())) {
+      evalBody(body);
+    }
+  } break;
+  case Expression::Type::IfElseThen: {
+    const Expression::IfElse &ifElse =
+        std::get<Expression::IfElse>(expression.data);
+    if (int64ToBool(parameterStack.pop())) {
+      evalBody(ifElse.ifBody);
+    } else {
+      evalBody(ifElse.elseBody);
+    }
+  } break;
+
+  case Expression::Type::BeginUntil: {
+    const std::vector<Expression> &body =
+        std::get<std::vector<Expression>>(expression.data);
+    do {
+      evalBody(body);
+    } while (!int64ToBool(parameterStack.pop()));
+  } break;
+  case Expression::Type::BeginWhileRepeat: {
+    const Expression::BeginWhile &beginWhile =
+        std::get<Expression::BeginWhile>(expression.data);
+    evalBody(beginWhile.condBody);
+    while (int64ToBool(parameterStack.pop())) {
+      evalBody(beginWhile.whileBody);
+      evalBody(beginWhile.condBody);
+    }
+  } break;
+  case Expression::Type::BeginAgain: {
+    const std::vector<Expression> &body =
+        std::get<std::vector<Expression>>(expression.data);
+    while (true) {
+      evalBody(body);
+    }
+  } break;
   }
 }
 

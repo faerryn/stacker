@@ -13,8 +13,8 @@
 struct Expression {
   enum class Type {
     Number,
-    Word,
     String,
+    Word,
 
     Add,
     Sub,
@@ -44,15 +44,6 @@ struct Expression {
     ToR,
     RFrom,
 
-    Define,
-
-    IfThen,
-    IfElseThen,
-
-    BeginUntil,
-    BeginWhileRepeat,
-    BeginAgain,
-
     Store,
     Fetch,
     CStore,
@@ -62,6 +53,15 @@ struct Expression {
 
     DotS,
     Bye,
+
+    Define,
+
+    IfThen,
+    IfElseThen,
+
+    BeginUntil,
+    BeginWhileRepeat,
+    BeginAgain,
   } type;
   struct Def {
     std::string word;

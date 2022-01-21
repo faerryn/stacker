@@ -10,8 +10,8 @@
 struct Lexeme {
   enum class Type {
     Number,
-    Word,
     String,
+    Word,
 
     Add,
     Sub,
@@ -41,6 +41,16 @@ struct Lexeme {
     ToR,
     RFrom,
 
+    Store,
+    Fetch,
+    CStore,
+    CFetch,
+    Alloc,
+    Free,
+
+    DotS,
+    Bye,
+
     Col,
     Semi,
 
@@ -53,16 +63,6 @@ struct Lexeme {
     While,
     Repeat,
     Again,
-
-    Store,
-    Fetch,
-    CStore,
-    CFetch,
-    Alloc,
-    Free,
-
-    DotS,
-    Bye,
   } type;
   std::variant<std::monostate, std::int64_t, std::string> data;
 };

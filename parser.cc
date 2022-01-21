@@ -183,12 +183,12 @@ Expression parseLexeme(const Lexeme &lexeme, std::istream &source) {
     return Expression{Expression::Type::Number,
                       std::get<std::int64_t>(lexeme.data)};
     break;
-  case Lexeme::Type::Word:
-    return Expression{Expression::Type::Word,
-                      std::get<std::string>(lexeme.data)};
-    break;
   case Lexeme::Type::String:
     return Expression{Expression::Type::String,
+                      std::get<std::string>(lexeme.data)};
+    break;
+  case Lexeme::Type::Word:
+    return Expression{Expression::Type::Word,
                       std::get<std::string>(lexeme.data)};
     break;
 
@@ -264,6 +264,32 @@ Expression parseLexeme(const Lexeme &lexeme, std::istream &source) {
     return Expression{Expression::Type::RFrom, {}};
     break;
 
+  case Lexeme::Type::Store:
+    return Expression{Expression::Type::Store, {}};
+    break;
+  case Lexeme::Type::Fetch:
+    return Expression{Expression::Type::Fetch, {}};
+    break;
+  case Lexeme::Type::CStore:
+    return Expression{Expression::Type::CStore, {}};
+    break;
+  case Lexeme::Type::CFetch:
+    return Expression{Expression::Type::CFetch, {}};
+    break;
+  case Lexeme::Type::Alloc:
+    return Expression{Expression::Type::Alloc, {}};
+    break;
+  case Lexeme::Type::Free:
+    return Expression{Expression::Type::Free, {}};
+    break;
+
+  case Lexeme::Type::DotS:
+    return Expression{Expression::Type::DotS, {}};
+    break;
+  case Lexeme::Type::Bye:
+    return Expression{Expression::Type::Bye, {}};
+    break;
+
   case Lexeme::Type::Col:
     return parseDefineWord(source);
     break;
@@ -304,32 +330,6 @@ Expression parseLexeme(const Lexeme &lexeme, std::istream &source) {
   case Lexeme::Type::Again:
     std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected AGAIN\n";
     exit(EXIT_FAILURE);
-    break;
-
-  case Lexeme::Type::Store:
-    return Expression{Expression::Type::Store, {}};
-    break;
-  case Lexeme::Type::Fetch:
-    return Expression{Expression::Type::Fetch, {}};
-    break;
-  case Lexeme::Type::CStore:
-    return Expression{Expression::Type::CStore, {}};
-    break;
-  case Lexeme::Type::CFetch:
-    return Expression{Expression::Type::CFetch, {}};
-    break;
-  case Lexeme::Type::Alloc:
-    return Expression{Expression::Type::Alloc, {}};
-    break;
-  case Lexeme::Type::Free:
-    return Expression{Expression::Type::Free, {}};
-    break;
-
-  case Lexeme::Type::DotS:
-    return Expression{Expression::Type::DotS, {}};
-    break;
-  case Lexeme::Type::Bye:
-    return Expression{Expression::Type::Bye, {}};
     break;
   }
 
