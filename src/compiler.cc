@@ -41,7 +41,7 @@ void Compiler::compileExpression(const Expression &expression,
       destination += "addr[" + std::to_string(i) +
                      "] = " + std::to_string(int(str[i])) + ";\n";
     }
-    destination +
+    destination +=
         "parameterStack.push(reinterpret_cast<std::int64_t>(addr));\n"
         "parameterStack.push(" +
         std::to_string(str.size()) +
