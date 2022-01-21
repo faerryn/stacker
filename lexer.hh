@@ -40,6 +40,7 @@ struct Lexeme {
 
     ToR,
     RFrom,
+    RFetch,
 
     Store,
     Fetch,

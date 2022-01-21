@@ -184,6 +184,8 @@ Lexeme lexWordDone(const std::string &word) {
     return Lexeme{Lexeme::Type::ToR, {}};
   } else if (word == "r>") {
     return Lexeme{Lexeme::Type::RFrom, {}};
+  } else if (word == "r@") {
+    return Lexeme{Lexeme::Type::RFetch, {}};
 
   } else if (word == "!") {
     return Lexeme{Lexeme::Type::Store, {}};

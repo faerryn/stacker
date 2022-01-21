@@ -266,6 +266,9 @@ Expression parseLexeme(const Lexeme &lexeme, std::istream &source) {
   case Lexeme::Type::RFrom:
     return Expression{Expression::Type::RFrom, {}};
     break;
+  case Lexeme::Type::RFetch:
+    return Expression{Expression::Type::RFetch, {}};
+    break;
 
   case Lexeme::Type::Store:
     return Expression{Expression::Type::Store, {}};

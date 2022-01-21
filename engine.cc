@@ -84,7 +84,8 @@ void Engine::evalExpression(const Expression &expression) {
       }
       returnStack = std::move(returnStackMove);
     } else {
-      std::cerr << __FILE__ << ":" << __LINE__ << ": unknown word\n";
+      std::cerr << __FILE__ << ":" << __LINE__ << ": unknown word: " << word
+                << "?\n";
       exit(EXIT_FAILURE);
     }
   } break;
@@ -198,6 +199,11 @@ void Engine::evalExpression(const Expression &expression) {
   case Expression::Type::RFrom:
     parameterStack.push(returnStack.pop());
     break;
+  case Expression::Type::RFetch: {
+    const std::int64_t a = returnStack.pop();
+    returnStack.push(a);
+    parameterStack.push(a);
+  } break;
 
   case Expression::Type::Store: {
     const std::int64_t b = parameterStack.pop();

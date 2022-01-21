@@ -43,6 +43,7 @@ struct Expression {
 
     ToR,
     RFrom,
+    RFetch,
 
     Store,
     Fetch,
