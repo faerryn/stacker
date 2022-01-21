@@ -64,7 +64,7 @@ struct Expression {
     BeginWhileRepeat,
     BeginAgain,
   } type;
-  struct Def {
+  struct WordDefinition {
     std::string word;
     std::vector<Expression> body;
   };
@@ -77,7 +77,7 @@ struct Expression {
     std::vector<Expression> elseBody;
   };
   std::variant<std::monostate, std::int64_t, std::string,
-               std::vector<Expression>, Def, BeginWhile, IfElse>
+               std::vector<Expression>, WordDefinition, BeginWhile, IfElse>
       data;
 };
 

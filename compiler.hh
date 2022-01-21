@@ -11,15 +11,12 @@
 
 class Compiler {
 private:
-  struct Define {
-    int name;
-    std::string declaration;
-    std::string definition;
-  };
-  std::map<std::string, Define> dictionary;
+  std::map<std::string, int> dictionary;
   int nextDictionaryName;
 
-  std::string main;
+  std::string declarationSection;
+  std::string definitionSection;
+  std::string mainSection;
 
   void compileBody(const std::vector<Expression> &body,
                    std::string &destination);

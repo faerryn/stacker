@@ -16,7 +16,7 @@ void Compiler::compileBody(const std::vector<Expression> &body,
 void Compiler::compile(std::istream &source) {
   std::optional<Expression> expression;
   while ((expression = parse(source))) {
-    compileExpression(*expression, main);
+    compileExpression(*expression, mainSection);
   }
 }
 
@@ -54,7 +54,7 @@ void Compiler::compileExpression(const Expression &expression,
       destination += "// Word " + word +
                      "\n"
                      "word_" +
-                     std::to_string(find->second.name) + "();\n";
+                     std::to_string(find->second) + "();\n";
     } else {
       std::cerr << __FILE__ << ":" << __LINE__ << ": unknown word: " << word
                 << "\n";
@@ -282,27 +282,34 @@ void Compiler::compileExpression(const Expression &expression,
   case Expression::Type::DotS:
     break;
   case Expression::Type::Bye:
-    destination += "// By \n"
+    destination += "// Bye\n"
                    "exit(EXIT_SUCCESS);\n";
     break;
 
   case Expression::Type::Define: {
-    const Expression::Def &def = std::get<Expression::Def>(expression.data);
-    std::string declaration = "// Define " + def.word +
+    const Expression::WordDefinition &wordDefinition =
+        std::get<Expression::WordDefinition>(expression.data);
+    std::string declaration = "// Define " + wordDefinition.word +
                               "\n"
                               "void word_" +
                               std::to_string(nextDictionaryName) + "();\n";
 
-    dictionary[def.word] = {nextDictionaryName, "", ""};
+    if (dictionary.contains(wordDefinition.word)) {
+      std::cerr << __FILE__ << ":" << __LINE__
+                << ": word already defined: " << wordDefinition.word << "\n";
+    }
+    dictionary[wordDefinition.word] = nextDictionaryName;
     ++nextDictionaryName;
 
-    std::string definition = "// Define " + def.word +
-      "\n"
-      "void word_" +
-      std::to_string(nextDictionaryName) + "() {\n";
-    compileBody(def.body, definition);
+    std::string definition = "// Define " + wordDefinition.word +
+                             "\n"
+                             "void word_" +
+                             std::to_string(nextDictionaryName) + "() {\n";
+    compileBody(wordDefinition.body, definition);
     definition += "}\n";
-    dictionary[def.word] = {nextDictionaryName, declaration, definition};
+    dictionary[wordDefinition.word] = nextDictionaryName;
+    declarationSection += declaration;
+    definitionSection += definition;
   } break;
 
   case Expression::Type::IfThen: {
@@ -372,16 +379,11 @@ void Compiler::write(std::ostream &destination) {
                  "Stack parameterStack;\n"
                  "Stack returnStack;\n"
                  "std::int64_t boolToInt64(bool b) { return b ? ~0 : 0; }\n"
-                 "bool int64ToBool(std::int64_t i) { return i != 0; }\n";
-  for (const std::pair<std::string, Compiler::Define> pair : dictionary) {
-    destination << pair.second.declaration;
-  }
-  for (const std::pair<std::string, Compiler::Define> pair : dictionary) {
-    destination << pair.second.definition;
-  }
-  destination << "// BODY\n"
-                 "int main(int argc, char** argv) {\n";
-  destination << main;
-  destination << "// TAIL\n"
+                 "bool int64ToBool(std::int64_t i) { return i != 0; }\n"
+              << declarationSection << definitionSection
+              << "// BODY\n"
+                 "int main(int argc, char** argv) {\n"
+              << mainSection
+              << "// TAIL\n"
                  "}\n";
 }

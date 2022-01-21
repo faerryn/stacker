@@ -135,7 +135,7 @@ Expression parseDefineBody(std::istream &source, const std::string &word,
 
   switch (lexeme.type) {
   case Lexeme::Type::Semi: {
-    return Expression{Expression::Type::Define, Expression::Def{word, body}};
+    return Expression{Expression::Type::Define, Expression::WordDefinition{word, body}};
   } break;
   case Lexeme::Type::Col:
     std::cerr << __FILE__ << ":" << __LINE__ << ": unexpected col\n";
