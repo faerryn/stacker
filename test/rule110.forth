@@ -41,18 +41,39 @@
   drop drop drop ;
 
 : r110scroller
-  dup alloc 2dup swap space fill
-  swap dup alloc 2dup swap space fill
-  2dup + 2 - star swap c!
-  swap
+  rot swap
   begin
     2dup type
-    rot swap 3dup r110map
+    rot swap
+    3dup r110map
     key '\n' <>
   until
   cr
-  drop free free ;
+  drop drop drop ;
 
-64 r110scroller
+dup 1 =
+if
+  64
+  dup alloc swap 2dup space fill
+  dup alloc swap 2dup space fill
+  2dup + 2 - star swap c!
+  rot swap
+
+  3dup
+  r110scroller
+  drop free free
+else
+  dup 2 =
+  if
+    drop drop drop
+    dup alloc swap 2dup space fill
+
+    3dup
+    r110scroller
+    drop free
+  else
+    "USAGE: rule110 [START]\n" over swap type free
+  then
+then
 
 bye
