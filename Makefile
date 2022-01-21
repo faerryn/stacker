@@ -1,12 +1,12 @@
 CXXFLAGS ?= -g
 override CXXFLAGS += -std=c++20 -Werror -Wall -Wextra -Wpedantic
 
-sources := $(wildcard *.cc)
-objects := $(patsubst %.cc,%.o,$(sources))
-depends := $(patsubst %.cc,%.d,$(sources))
+SOURCES := $(wildcard *.cc)
+OBJECTS := $(patsubst %.cc,%.o,$(SOURCES))
+DEPENDS := $(patsubst %.cc,%.d,$(SOURCES))
 
 
-stacker: $(objects)
+stacker: $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
 -include $(depends)
@@ -19,4 +19,4 @@ stacker: $(objects)
 all: stacker
 
 clean:
-	$(RM) $(objects) $(depends) stacker
+	$(RM) $(OBJECTS) $(DEPENDS) stacker
