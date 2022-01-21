@@ -1,5 +1,6 @@
 #include "compiler.hh"
 
+#include <cstdlib>
 #include <iostream>
 #include <optional>
 #include <string>
@@ -50,7 +51,7 @@ void Compiler::compileExpression(const Expression &expression,
   case Expression::Type::Word: {
     const std::string &word = std::get<std::string>(expression.data);
     const auto &find = dictionary.find(word);
-    const int name = find->second;
+    const int name = find->second.name;
     if (find != dictionary.end()) {
       destination += "// Word " + word +
                      "\n"
@@ -289,28 +290,20 @@ void Compiler::compileExpression(const Expression &expression,
     break;
 
   case Expression::Type::WordDefinition: {
-    const Expression::WordDefinition &wordDefinition =
+    const Expression::WordDefinition &definition =
         std::get<Expression::WordDefinition>(expression.data);
-    std::string declaration = "// Declare " + wordDefinition.word +
-                              "\n"
-                              "void word_" +
-                              std::to_string(nextDictionaryName) + "();\n";
-
-    if (dictionary.contains(wordDefinition.word)) {
+    if (dictionary.contains(definition.word)) {
       std::cerr << __FILE__ << ":" << __LINE__
-                << ": word already defined: " << wordDefinition.word << "\n";
+                << ": word already defined: " << definition.word << "\n";
+      exit(EXIT_FAILURE);
     }
-    dictionary[wordDefinition.word] = nextDictionaryName;
 
-    std::string definition = "// Define " + wordDefinition.word +
-                             "\n"
-                             "void word_" +
-                             std::to_string(nextDictionaryName) + "() {\n";
-    compileBody(wordDefinition.body, definition);
-    definition += "}\n";
-    dictionary[wordDefinition.word] = nextDictionaryName;
-    declarationSection += declaration;
-    definitionSection += definition;
+    dictionary[definition.word] = {nextDictionaryName, definition};
+
+    declarationSection += "// Declare " + definition.word +
+                          "\n"
+                          "void word_" +
+                          std::to_string(nextDictionaryName) + "();\n";
 
     ++nextDictionaryName;
   } break;
@@ -364,28 +357,40 @@ void Compiler::compileExpression(const Expression &expression,
 }
 
 void Compiler::write(std::ostream &destination) {
+  destination << "// HEADER\n"
+                 "#include <cstring>\n"
+                 "#include <cstdint>\n"
+                 "#include <iostream>\n"
+                 "#include <vector>\n"
+                 "class Stack {\n"
+                 "private:\n"
+                 "std::vector<std::int64_t> data;\n"
+                 "public:\n"
+                 "void push(std::int64_t number) { data.push_back(number); }\n"
+                 "std::int64_t pop() {\n"
+                 "const std::int64_t result = data.back();\n"
+                 "data.pop_back();\n"
+                 "return result;\n"
+                 "}\n"
+                 "};\n"
+                 "Stack parameterStack;\n"
+                 "Stack returnStack;\n"
+                 "std::int64_t boolToInt64(bool b) { return b ? ~0 : 0; }\n"
+                 "bool int64ToBool(std::int64_t i) { return i != 0; }\n"
+              << declarationSection;
+
+  for (const auto &pair : dictionary) {
+    const NamedDefinition namedDefinition = pair.second;
+    std::string definitionStr = "// Define " + namedDefinition.definition.word +
+                                "\n"
+                                "void word_" +
+                                std::to_string(namedDefinition.name) + "() {\n";
+    compileBody(namedDefinition.definition.body, definitionStr);
+    definitionStr += "}\n";
+    destination << definitionStr;
+  }
+
   destination
-      << "// HEADER\n"
-         "#include <cstring>\n"
-         "#include <cstdint>\n"
-         "#include <iostream>\n"
-         "#include <vector>\n"
-         "class Stack {\n"
-         "private:\n"
-         "std::vector<std::int64_t> data;\n"
-         "public:\n"
-         "void push(std::int64_t number) { data.push_back(number); }\n"
-         "std::int64_t pop() {\n"
-         "const std::int64_t result = data.back();\n"
-         "data.pop_back();\n"
-         "return result;\n"
-         "}\n"
-         "};\n"
-         "Stack parameterStack;\n"
-         "Stack returnStack;\n"
-         "std::int64_t boolToInt64(bool b) { return b ? ~0 : 0; }\n"
-         "bool int64ToBool(std::int64_t i) { return i != 0; }\n"
-      << declarationSection << definitionSection
       << "// BODY\n"
          "int main(int argc, char** argv) {\n"
          "for (int i = argc - 1; i >= 0; --i) {\n"

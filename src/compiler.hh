@@ -11,11 +11,14 @@
 
 class Compiler {
 private:
-  std::map<std::string, int> dictionary;
+  struct NamedDefinition {
+    int name;
+    Expression::WordDefinition definition;
+  };
+  std::map<std::string, NamedDefinition> dictionary;
   int nextDictionaryName;
 
   std::string declarationSection;
-  std::string definitionSection;
   std::string mainSection;
 
   void compileBody(const std::vector<Expression> &body,

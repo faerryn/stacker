@@ -4,8 +4,7 @@
 
 /stacker
 
-*.forth.cc
-*.forth.out
+*.forth.*
 
 /.cache/
 /compile_commands.json
