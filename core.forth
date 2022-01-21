@@ -9,7 +9,7 @@
 : true 0 invert ;
 : false 0 ;
 
-: ?dup dup dup 0= if drop then ;
+: ?dup dup dup 0 = if drop then ;
 
 : negate invert 1 + ;
 : abs dup 0 < if negate then ;

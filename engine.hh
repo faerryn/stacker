@@ -27,13 +27,13 @@ private:
   std::set<std::uint8_t *> allocs;
 
   void define(const std::string &word, const std::vector<Expression> &def);
-  void evalBody(const std::vector<Expression> &body);
-  void evalExpression(const Expression &expression);
+  bool evalBody(const std::vector<Expression> &body);
+  bool evalExpression(const Expression &expression);
 
 public:
   ~Engine();
 
-  void eval(std::istream &source);
+  bool eval(std::istream &source);
 };
 
 #endif // ENGINE_HH
