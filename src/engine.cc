@@ -249,19 +249,22 @@ bool Engine::evalExpression(const Expression &expression) {
     *reinterpret_cast<std::int64_t *>(b) = a;
     return true;
   }
-  case Expression::Type::Fetch:
-    parameterStack.push(
-        *reinterpret_cast<std::int64_t *>(parameterStack.pop()));
+  case Expression::Type::Fetch: {
+    const std::int64_t a = parameterStack.pop();
+    parameterStack.push(*reinterpret_cast<std::int64_t *>(a));
     return true;
+  }
   case Expression::Type::CStore: {
     const std::int64_t b = parameterStack.pop();
     const std::int64_t a = parameterStack.pop();
     *reinterpret_cast<char *>(b) = char(a);
     return true;
   }
-  case Expression::Type::CFetch:
-    parameterStack.push(*reinterpret_cast<char *>(parameterStack.pop()));
+  case Expression::Type::CFetch: {
+    const std::int64_t a = parameterStack.pop();
+    parameterStack.push(*reinterpret_cast<char *>(a));
     return true;
+  }
   case Expression::Type::Alloc: {
     const std::int64_t size = parameterStack.pop();
     if (size <= 0) {

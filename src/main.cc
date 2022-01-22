@@ -7,7 +7,10 @@
 #include "compiler.hh"
 #include "engine.hh"
 
-bool evalFile(Engine &engine, const std::filesystem::path &path) {
+Engine engine;
+Compiler compiler;
+
+bool evalFile(const std::filesystem::path &path) {
   std::ifstream file{path};
   if (!file.is_open()) {
     std::cerr << __FILE__ << ":" << __LINE__ << path
@@ -19,7 +22,7 @@ bool evalFile(Engine &engine, const std::filesystem::path &path) {
   return flag;
 }
 
-void compileFile(Compiler &compiler, const std::filesystem::path &path) {
+void compileFile(const std::filesystem::path &path) {
   std::ifstream file{path};
   if (!file.is_open()) {
     std::cerr << __FILE__ << ":" << __LINE__ << path
@@ -42,31 +45,33 @@ int main(int argc, char **argv) {
     for (int i = 0; i < argc; ++i) {
       args.push_back(argv[i]);
     }
-    Engine engine;
-    evalFile(engine, corePath);
+
+    evalFile(corePath);
 
     engine.pushArgs(args);
     engine.eval(std::cin);
+
   } else if (argc >= 3) {
+    const std::string command = argv[1];
     const std::filesystem::path sourcePath{argv[2]};
-    if (std::strcmp(argv[1], "interp") == 0) {
+
+    if (command == "interp") {
       std::vector<const char *> args;
       args.reserve(argc - 2);
       for (int i = 2; i < argc; ++i) {
         args.push_back(argv[i]);
       }
-      Engine engine;
-      evalFile(engine, corePath);
+
+      evalFile(corePath);
 
       engine.pushArgs(args);
-      const bool flag = evalFile(engine, sourcePath);
+      const bool flag = evalFile(sourcePath);
       if (flag) {
         engine.eval(std::cin);
       }
-    } else if (std::strcmp(argv[1], "comp") == 0) {
-      Compiler compiler;
-      compileFile(compiler, corePath);
-      compileFile(compiler, argv[2]);
+    } else if (command == "comp") {
+      compileFile(corePath);
+      compileFile(sourcePath);
 
       std::filesystem::path destinationPath = sourcePath;
       destinationPath.concat(".cc");
