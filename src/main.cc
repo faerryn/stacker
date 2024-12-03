@@ -41,6 +41,7 @@ int main(int argc, char **argv) {
 
   if (argc < 3) {
     std::cout << "usage: " << argv[0] << " (comp|interp) <files>" << std::endl;
+    exit(EXIT_FAILURE);
   }
 
   const std::string command = argv[1];
@@ -74,5 +75,5 @@ int main(int argc, char **argv) {
     std::cerr << "unknown command " << argv[1] << "\n";
   }
 
-  return EXIT_SUCCESS;
+  exit(EXIT_SUCCESS);
 }
