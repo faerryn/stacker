@@ -274,7 +274,7 @@ void Compiler::compileExpression(const Expression &expression,
         "}\n";
     break;
   case Expression::Type::Free:
-    destination + "// Free\n"
+    destination += "// Free\n"
                   "{\n"
                   "std::uint8_t *const addr =\n"
                   "reinterpret_cast<std::uint8_t *>(parameterStack.pop());\n"

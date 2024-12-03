@@ -39,52 +39,39 @@ int main(int argc, char **argv) {
   std::filesystem::path corePath = selfPath;
   corePath.replace_filename("core.forth");
 
-  if (argc == 1) {
+  if (argc < 3) {
+    std::cout << "usage: " << argv[0] << " (comp|interp) <files>" << std::endl;
+  }
+
+  const std::string command = argv[1];
+  const std::filesystem::path sourcePath{argv[2]};
+
+  if (command == "interp") {
     std::vector<const char *> args;
-    args.reserve(argc);
-    for (int i = 0; i < argc; ++i) {
+    args.reserve(argc - 2);
+    for (int i = 2; i < argc; ++i) {
       args.push_back(argv[i]);
     }
 
     evalFile(corePath);
 
     engine.pushArgs(args);
-    engine.eval(std::cin);
-
-  } else if (argc >= 3) {
-    const std::string command = argv[1];
-    const std::filesystem::path sourcePath{argv[2]};
-
-    if (command == "interp") {
-      std::vector<const char *> args;
-      args.reserve(argc - 2);
-      for (int i = 2; i < argc; ++i) {
-        args.push_back(argv[i]);
-      }
-
-      evalFile(corePath);
-
-      engine.pushArgs(args);
-      const bool flag = evalFile(sourcePath);
-      if (flag) {
-        engine.eval(std::cin);
-      }
-    } else if (command == "comp") {
-      compileFile(corePath);
-      compileFile(sourcePath);
-
-      std::filesystem::path destinationPath = sourcePath;
-      destinationPath.concat(".cc");
-
-      std::ofstream destination(destinationPath);
-      compiler.write(destination);
-      destination.close();
-    } else {
-      std::cerr << "unknown command " << argv[1] << "\n";
+    const bool flag = evalFile(sourcePath);
+    if (flag) {
+      engine.eval(std::cin);
     }
+  } else if (command == "comp") {
+    compileFile(corePath);
+    compileFile(sourcePath);
+
+    std::filesystem::path destinationPath = sourcePath;
+    destinationPath.concat(".cc");
+
+    std::ofstream destination(destinationPath);
+    compiler.write(destination);
+    destination.close();
   } else {
     std::cerr << "unknown command " << argv[1] << "\n";
-    exit(EXIT_FAILURE);
   }
 
   return EXIT_SUCCESS;
